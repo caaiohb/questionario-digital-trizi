@@ -1,0 +1,11 @@
+import { describe, expect, it } from "vitest";
+import { questionnaireSections } from "@/config/questionnaireConfig";
+import { buildStoredAnswers, validateQuestionnaireAnswers } from "./questionnaire";
+import type { RawAnswers } from "@/types/questionnaire";
+
+function validAnswers(): RawAnswers { const answers: RawAnswers = {}; for (const section of questionnaireSections) for (const question of section.questions) { if (question.condition) continue; if (question.id === "identification_full_name") answers[question.id] = "Paciente Teste"; else if (question.id === "identification_age") answers[question.id] = 40; else if (question.id === "identification_current_weight") answers[question.id] = 80; else if (question.id === "identification_desired_weight") answers[question.id] = 68; else if (question.id === "identification_height") answers[question.id] = 1.65; else if (question.id === "menstrual_status") answers[question.id] = "regular"; else if (question.id === "activity_profile") answers[question.id] = "light_2_3"; else if (question.id === "stimulant_experience") answers[question.id] = "never"; else if (question.type === "yes_no") answers[question.id] = "nao"; else if (question.type === "yes_no_na") answers[question.id] = "nao"; else if (question.type === "yes_no_prefer_not") answers[question.id] = "prefiro_nao_responder"; else if (question.id === "current_medications") answers[question.id] = "Não utilizo nenhum medicamento"; else if (question.id === "other_conditions") answers[question.id] = "Não possuo outra condição"; } return answers; }
+describe("validação do questionário", () => {
+  it("aceita um questionário completo", () => { const result = validateQuestionnaireAnswers(validAnswers()); expect(result.success).toBe(true); });
+  it("rejeita identificação ausente", () => { const answers = validAnswers(); delete answers.identification_full_name; const result = validateQuestionnaireAnswers(answers); expect(result.errors.identification_full_name).toBeDefined(); });
+  it("mantém IDs estáveis no JSON armazenado", () => { const stored = buildStoredAnswers(validAnswers()); expect(stored.emotional_anxiety.code).toBe("mental_health_anxiety"); expect(stored.identification_full_name.answer).toBe("Paciente Teste"); });
+});

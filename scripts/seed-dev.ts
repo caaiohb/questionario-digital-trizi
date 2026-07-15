@@ -1,0 +1,24 @@
+import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
+import { questionnaireSections, QUESTIONNAIRE_VERSION } from "../src/config/questionnaireConfig";
+
+try { process.loadEnvFile?.(".env.local"); } catch { /* variáveis podem vir do ambiente */ }
+if (process.env.ALLOW_DEV_SEED !== "true" || process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production") { console.error("Seed bloqueado. Use somente em desenvolvimento com ALLOW_DEV_SEED=true."); process.exit(1); }
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL; const key = process.env.SUPABASE_SERVICE_ROLE_KEY; const adminPassword = process.env.DEV_ADMIN_PASSWORD; const employeePassword = process.env.DEV_EMPLOYEE_PASSWORD;
+if (!url || !key || !adminPassword || !employeePassword) { console.error("Configure Supabase, DEV_ADMIN_PASSWORD e DEV_EMPLOYEE_PASSWORD em .env.local."); process.exit(1); }
+const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+async function ensureUser(email: string, nome: string, perfil: "administrator" | "employee", password: string) { const { data: existing } = await admin.from("profiles").select("id,user_id").eq("email", email).maybeSingle(); if (existing) return existing; const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { nome, perfil } }); if (error || !data.user) throw error; const { data: profile, error: profileError } = await admin.from("profiles").insert({ user_id: data.user.id, nome, email, perfil, ativo: true }).select("id,user_id").single(); if (profileError) throw profileError; return profile; }
+const devAdmin = await ensureUser("admin.dev@institutotrizi.local", "Administradora de Desenvolvimento", "administrator", adminPassword);
+const devEmployee = await ensureUser("funcionario.dev@institutotrizi.local", "Funcionária de Desenvolvimento", "employee", employeePassword);
+
+function makeAnswers(name: string, priority = false) { const values: Record<string, unknown> = { identification_full_name: name, identification_age: 42, identification_current_weight: 82.4, identification_desired_weight: 68, identification_height: 1.65, menstrual_status: "regular", activity_profile: "light_2_3", stimulant_experience: "never", current_medications: "Não utilizo nenhum medicamento", other_conditions: "Não possuo outra condição", emotional_death_thoughts: priority ? "sim" : "nao" }; const stored: Record<string, unknown> = {}; for (const section of questionnaireSections) for (const question of section.questions) { let answer = values[question.id]; if (answer === undefined) { if (["yes_no", "yes_no_na"].includes(question.type)) answer = "nao"; else if (question.type === "yes_no_prefer_not") answer = "prefiro_nao_responder"; else if (question.type === "radio") answer = question.options?.[0]?.value; else continue; } stored[question.id] = { questionId: question.id, code: question.code, question: question.text, answer, sectionId: section.id, section: section.title, sensitive: Boolean(question.sensitive) }; } return stored; }
+const samples = [
+  { name: "Paciente Fictícia Aurora", age: 38, status: "new", priority: false, assigned: null },
+  { name: "Paciente Fictícia Beatriz", age: 45, status: "in_review", priority: false, assigned: devEmployee.id },
+  { name: "Paciente Fictícia Carolina", age: 52, status: "inserted_into_record", priority: false, assigned: devEmployee.id },
+  { name: "Paciente Fictícia Daniela", age: 40, status: "new", priority: true, assigned: devAdmin.id },
+] as const;
+for (const sample of samples) { const { data: exists } = await admin.from("questionnaire_submissions").select("id").eq("patient_name", sample.name).maybeSingle(); if (exists) continue; await admin.from("questionnaire_submissions").insert({ client_submission_id: randomUUID(), patient_name: sample.name, patient_age: sample.age, current_weight: 82.4, desired_weight: 68, height: 1.65, answers: makeAnswers(sample.name, sample.priority), questionnaire_version: QUESTIONNAIRE_VERSION, status: sample.status, priority_alert: sample.priority, priority_alert_at: sample.priority ? new Date().toISOString() : null, consent_accepted: true, consent_version: "dev-2026.07.1", consent_accepted_at: new Date().toISOString(), submitted_at: new Date().toISOString(), assigned_user_id: sample.assigned, inserted_into_record_at: sample.status === "inserted_into_record" ? new Date().toISOString() : null, inserted_into_record_by: sample.status === "inserted_into_record" ? devEmployee.id : null }); }
+console.log("Dados fictícios de desenvolvimento criados.");
+console.log("Usuários: admin.dev@institutotrizi.local e funcionario.dev@institutotrizi.local");
+console.log("As senhas são as definidas nas variáveis DEV_ADMIN_PASSWORD e DEV_EMPLOYEE_PASSWORD.");

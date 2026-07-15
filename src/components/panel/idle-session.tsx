@@ -1,0 +1,4 @@
+"use client";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
+export function IdleSession({ minutes = 30 }: { minutes?: number }) { const timer = useRef<ReturnType<typeof setTimeout> | null>(null); useEffect(() => { const logout = async () => { await fetch("/api/auth/logout", { method: "POST" }); toast.info("Sessão encerrada por inatividade."); window.location.href = "/login"; }; const reset = () => { if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(logout, Math.max(5, minutes) * 60_000); }; const events = ["mousedown", "keydown", "scroll", "touchstart"] as const; events.forEach((event) => window.addEventListener(event, reset, { passive: true })); reset(); return () => { if (timer.current) clearTimeout(timer.current); events.forEach((event) => window.removeEventListener(event, reset)); }; }, [minutes]); return null; }
