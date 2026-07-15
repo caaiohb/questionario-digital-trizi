@@ -2,6 +2,7 @@
   "name": "questionario-digital-trizi",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Questionário clínico digital do Instituto Trizi, preparado para Vercel e Supabase.",
   "engines": {
     "node": "22.x"
