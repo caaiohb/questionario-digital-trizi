@@ -12,7 +12,11 @@ export async function POST(request: Request) {
     if (!parsed.success) return NextResponse.json({ error: "E-mail ou senha inválidos." }, { status: 400 });
     const admin = createAdminClient();
     const key = hmac(`${getRequestIp(request.headers)}|${parsed.data.email.toLowerCase()}`, process.env.RATE_LIMIT_SECRET);
-    const { data: allowed } = await admin.rpc("consume_rate_limit", { p_scope: "staff_login", p_key_hash: key, p_limit: 8, p_window_seconds: 900 });
+    const { data: allowed, error: rateError } = await admin.rpc("consume_rate_limit", { p_scope: "staff_login", p_key_hash: key, p_limit: 8, p_window_seconds: 900 });
+    if (rateError) {
+      console.error("[login] consume_rate_limit RPC error:", JSON.stringify(rateError));
+      return NextResponse.json({ error: "Não foi possível entrar. Tente novamente em instantes." }, { status: 500 });
+    }
     if (!allowed) return NextResponse.json({ error: "Não foi possível entrar. Aguarde alguns minutos e tente novamente." }, { status: 429 });
 
     const supabase = await createClient();
