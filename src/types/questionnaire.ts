@@ -10,7 +10,8 @@ export type QuestionType =
   | "yes_no_na"
   | "yes_no_prefer_not"
   | "radio"
-  | "height";
+  | "height"
+  | "cpf";
 
 export type SummaryMode = "always" | "when_yes" | "when_no" | "when_filled" | "never";
 

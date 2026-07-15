@@ -17,6 +17,10 @@ export function QuestionField({ question, value, register, setValue, error }: Pr
   if (question.type === "text") {
     return <Input id={question.id} aria-invalid={Boolean(error)} aria-describedby={describedBy} placeholder={question.placeholder} {...register(question.id)} />;
   }
+  if (question.type === "cpf") {
+    const format = (digits: string) => digits.slice(0, 11).replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    return <Input id={question.id} inputMode="numeric" autoComplete="off" aria-invalid={Boolean(error)} aria-describedby={describedBy} placeholder={question.placeholder} value={typeof value === "string" ? value : ""} onChange={(event) => setValue(question.id, format(event.target.value.replace(/\D/g, "")), { shouldDirty: true, shouldValidate: true })} maxLength={14} />;
+  }
   if (question.type === "textarea") {
     return <div className="space-y-3"><Textarea id={question.id} aria-invalid={Boolean(error)} aria-describedby={describedBy} placeholder={question.placeholder} {...register(question.id)} />{question.quickFill && <button type="button" onClick={() => setValue(question.id, question.quickFill!, { shouldDirty: true })} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">{question.quickFill}</button>}</div>;
   }

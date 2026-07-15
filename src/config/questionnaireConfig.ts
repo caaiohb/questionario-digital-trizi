@@ -36,6 +36,7 @@ export const questionnaireSections: QuestionnaireSection[] = [
       q("identification", 3, { id: "identification_current_weight", code: "current_weight_kg", text: "Peso atual", type: "number", required: true, min: 25, max: 400, step: 0.1, unit: "kg", summaryMode: "always" }),
       q("identification", 4, { id: "identification_desired_weight", code: "desired_weight_kg", text: "Peso desejado", type: "number", required: true, min: 25, max: 400, step: 0.1, unit: "kg", summaryMode: "always" }),
       q("identification", 5, { id: "identification_height", code: "height_meters", text: "Altura", type: "height", required: true, helperText: "Você pode informar em centímetros ou metros. O sistema padronizará o valor em metros.", summaryMode: "always" }),
+      q("identification", 6, { id: "identification_cpf", code: "patient_cpf", text: "CPF", type: "cpf", required: true, placeholder: "000.000.000-00", helperText: "Usado apenas para identificação no seu prontuário.", summaryMode: "always" }),
     ],
   },
   {

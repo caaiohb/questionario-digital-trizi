@@ -31,9 +31,29 @@ function isEmpty(value: AnswerValue | undefined): boolean {
   return value === undefined || value === null || value === "";
 }
 
+function isValidCpf(rawValue: string): boolean {
+  const digits = rawValue.replace(/\D/g, "");
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+  const calcCheckDigit = (base: string, factor: number): number => {
+    let total = 0;
+    for (const digit of base) total += Number(digit) * factor--;
+    const remainder = (total * 10) % 11;
+    return remainder === 10 ? 0 : remainder;
+  };
+  const firstDigit = calcCheckDigit(digits.slice(0, 9), 10);
+  if (firstDigit !== Number(digits[9])) return false;
+  const secondDigit = calcCheckDigit(digits.slice(0, 10), 11);
+  return secondDigit === Number(digits[10]);
+}
+
 function validateQuestionValue(questionId: string, value: AnswerValue): string | null {
   const question = allQuestions.find((item) => item.id === questionId);
   if (!question) return "Pergunta inválida.";
+
+  if (question.type === "cpf") {
+    if (typeof value !== "string" || !isValidCpf(value)) return "Informe um CPF válido.";
+  }
 
   if (question.type === "number") {
     if (typeof value !== "number" || !Number.isFinite(value)) return "Informe um número válido.";

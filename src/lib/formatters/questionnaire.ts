@@ -21,11 +21,13 @@ function heading(title: string): string {
 
 function header(submission: SubmissionForFormatting): string {
   const date = format(new Date(submission.submitted_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+  const cpf = submission.answers.identification_cpf?.answer;
   return [
     "QUESTIONÁRIO DIGITAL TRIZI",
     "",
     `Paciente: ${submission.patient_name}`,
     `Idade: ${submission.patient_age} anos`,
+    ...(cpf ? [`CPF: ${cpf}`] : []),
     `Data do preenchimento: ${date}`,
     `Protocolo: ${submission.protocol}`,
     "",
