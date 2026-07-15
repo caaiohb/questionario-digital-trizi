@@ -35,7 +35,7 @@ export function ReviewClient() {
     }
     setSending(true);
     try {
-      const response = await fetch("/api/submissions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clientSubmissionId: draft.clientSubmissionId, answers: validation.answers, consentAccepted: true, consentVersion: draft.consentVersion || settings.consentVersion, consentAcceptedAt: draft.consentAcceptedAt ?? new Date().toISOString(), questionnaireVersion: QUESTIONNAIRE_VERSION }) });
+      const response = await fetch("/api/submissions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clientSubmissionId: draft.clientSubmissionId, answers: validation.answers, consentAccepted: true, consentVersion: draft.consentVersion || settings.consentVersion, consentAcceptedAt: draft.consentAcceptedAt ?? new Date().toISOString(), questionnaireVersion: QUESTIONNAIRE_VERSION, inviteToken: draft.inviteToken ?? null }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Não foi possível enviar o questionário.");
       sessionStorage.setItem(RESULT_KEY, JSON.stringify({ protocol: data.protocol, message: data.message || settings.finalMessage }));

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, ClipboardList, Menu, Settings, ShieldCheck, Users, X } from "lucide-react";
+import { BarChart3, ClipboardList, Menu, Send, Settings, ShieldCheck, Users, X } from "lucide-react";
 import { useState } from "react";
 import { InstituteLogo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import type { CurrentProfile } from "@/lib/auth";
 const baseItems = [
   { href: "/painel", label: "Visão geral", icon: BarChart3, exact: true },
   { href: "/painel/respostas", label: "Questionários", icon: ClipboardList },
+  { href: "/painel/convites", label: "Convites", icon: Send },
 ];
 const adminItems = [
   { href: "/painel/usuarios", label: "Funcionários", icon: Users },

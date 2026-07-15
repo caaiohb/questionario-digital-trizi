@@ -51,3 +51,21 @@ export interface InternalNoteRow {
   updated_at: string;
   author?: Pick<ProfileRow, "id" | "nome"> | null;
 }
+
+export type InviteStatus = "pending" | "completed" | "expired" | "cancelled";
+
+export interface InviteRow {
+  id: string;
+  token: string;
+  patient_name: string;
+  patient_contact: string | null;
+  notes: string | null;
+  status: InviteStatus;
+  created_by: string;
+  created_at: string;
+  completed_at: string | null;
+  cancelled_at: string | null;
+  submission_id: string | null;
+  expires_at: string;
+  creator?: Pick<ProfileRow, "id" | "nome"> | null;
+}

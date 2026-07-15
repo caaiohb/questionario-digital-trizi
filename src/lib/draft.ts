@@ -10,6 +10,7 @@ export interface QuestionnaireDraft {
   consentAccepted: boolean;
   consentAcceptedAt: string | null;
   consentVersion: string;
+  inviteToken?: string | null;
   updatedAt: number;
 }
 

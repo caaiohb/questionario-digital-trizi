@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ChevronLeft, ChevronRight, LockKeyhole, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, LockKeyhole, MailWarning, ShieldCheck } from "lucide-react";
 import { questionnaireSections, isQuestionVisible, menopauseAutoAnswerQuestionIds, menopauseStatuses, normalizeMenopauseAnswers } from "@/config/questionnaireConfig";
 import { usePublicSettings } from "@/hooks/use-public-settings";
 import { loadDraft, saveDraft } from "@/lib/draft";
@@ -13,8 +13,9 @@ import { PublicHeader } from "./public-header";
 import { PublicFooter } from "./public-footer";
 import { QuestionCard } from "./question-card";
 import type { RawAnswers } from "@/types/questionnaire";
+import type { InviteState } from "@/app/questionario/page";
 
-export function QuestionnaireWizard({ initialStage = 0 }: { initialStage?: number }) {
+export function QuestionnaireWizard({ initialStage = 0, invite = null }: { initialStage?: number; invite?: InviteState | null }) {
   const settings = usePublicSettings();
   const router = useRouter();
   const [stage, setStage] = useState(Math.max(0, Math.min(initialStage, questionnaireSections.length - 1)));
@@ -37,15 +38,18 @@ export function QuestionnaireWizard({ initialStage = 0 }: { initialStage?: numbe
         setConsentAcceptedAt(draft.consentAcceptedAt);
         setStarted(draft.consentAccepted);
       }
+      if (invite && invite.status === "pending" && !invite.expired && !draft?.answers.identification_full_name) {
+        form.setValue("identification_full_name", invite.patientName, { shouldDirty: true });
+      }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [form]);
+  }, [form, invite]);
 
   useEffect(() => {
     if (!clientSubmissionId) return;
-    const timer = window.setTimeout(() => saveDraft({ clientSubmissionId, answers, consentAccepted, consentAcceptedAt, consentVersion: settings.consentVersion }), 250);
+    const timer = window.setTimeout(() => saveDraft({ clientSubmissionId, answers, consentAccepted, consentAcceptedAt, consentVersion: settings.consentVersion, inviteToken: invite && invite.status === "pending" && !invite.expired ? invite.token : null }), 250);
     return () => window.clearTimeout(timer);
-  }, [answers, clientSubmissionId, consentAccepted, consentAcceptedAt, settings.consentVersion]);
+  }, [answers, clientSubmissionId, consentAccepted, consentAcceptedAt, settings.consentVersion, invite]);
 
   useEffect(() => {
     const status = answers.menstrual_status;
@@ -94,6 +98,16 @@ export function QuestionnaireWizard({ initialStage = 0 }: { initialStage?: numbe
     }
     setStage((value) => value + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  if (invite && (invite.status !== "pending" || invite.expired)) {
+    const messages: Record<string, string> = {
+      completed: "Este link já foi utilizado para o envio de um questionário. Se você acredita que isso é um engano, entre em contato com a recepção do Instituto Trizi.",
+      cancelled: "Este link foi cancelado pela equipe do Instituto Trizi. Solicite um novo link à recepção.",
+      expired: "Este link expirou. Solicite um novo link à recepção do Instituto Trizi.",
+    };
+    const message = invite.expired ? messages.expired : messages[invite.status] ?? messages.expired;
+    return <><PublicHeader settings={settings} /><main className="mx-auto min-h-[65vh] max-w-2xl px-5 py-12"><Card className="p-8 text-center"><MailWarning className="mx-auto text-amber-600" size={38} /><h1 className="mt-4 text-2xl font-semibold">Link não disponível</h1><p className="mt-2 leading-relaxed text-slate-600">{message}</p></Card></main><PublicFooter /></>;
   }
 
   if (!started) {

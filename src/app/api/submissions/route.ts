@@ -89,6 +89,13 @@ export async function POST(request: Request) {
     }
 
     await admin.from("audit_logs").insert({ action: "submission_received", entity_type: "questionnaire_submission", entity_id: inserted.id, metadata: { protocol: inserted.protocol, priority_alert: priorityAlert, possible_duplicate: Boolean(duplicate?.id) } });
+    if (parsed.data.inviteToken) {
+      try {
+        await admin.from("questionnaire_invites").update({ status: "completed", completed_at: new Date().toISOString(), submission_id: inserted.id }).eq("token", parsed.data.inviteToken).eq("status", "pending");
+      } catch {
+        // Vinculação de convite é apenas informativa para a recepção; nunca deve bloquear o envio do questionário.
+      }
+    }
     if (priorityAlert) notifyPriority(inserted.protocol, patientName).catch(() => undefined);
     return NextResponse.json({ protocol: inserted.protocol, message: "Suas respostas foram encaminhadas com segurança à equipe do Instituto Trizi." }, { status: 201 });
   } catch {

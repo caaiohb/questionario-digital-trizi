@@ -23,6 +23,7 @@ export const submissionPayloadSchema = z.object({
   consentVersion: z.string().min(1).max(50),
   consentAcceptedAt: z.string().datetime(),
   questionnaireVersion: z.literal(QUESTIONNAIRE_VERSION),
+  inviteToken: z.string().trim().min(1).max(100).optional().nullable(),
 });
 
 export type SubmissionPayload = z.infer<typeof submissionPayloadSchema>;
