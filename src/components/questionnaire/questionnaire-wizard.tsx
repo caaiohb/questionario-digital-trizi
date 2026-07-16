@@ -92,7 +92,7 @@ export function QuestionnaireWizard({ initialStage = 0, invite = null }: { initi
       return;
     }
     if (stage === questionnaireSections.length - 1) {
-      saveDraft({ clientSubmissionId, answers: normalized, consentAccepted, consentAcceptedAt, consentVersion: settings.consentVersion });
+      saveDraft({ clientSubmissionId, answers: normalized, consentAccepted, consentAcceptedAt, consentVersion: settings.consentVersion, inviteToken: invite && invite.status === "pending" && !invite.expired ? invite.token : null });
       router.push("/questionario/revisao");
       return;
     }
