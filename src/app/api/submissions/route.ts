@@ -37,6 +37,7 @@ export async function POST(request: Request) {
 
     const parsed = submissionPayloadSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Dados inválidos. Revise o questionário." }, { status: 400 });
+    console.log("[submissions] inviteToken recebido:", JSON.stringify(parsed.data.inviteToken ?? null));
     const validation = validateQuestionnaireAnswers(parsed.data.answers);
     if (!validation.success) return NextResponse.json({ error: "Existem respostas obrigatórias pendentes.", fields: validation.errors }, { status: 422 });
 
