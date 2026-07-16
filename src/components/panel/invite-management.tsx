@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Ban, Copy, Loader2, Send, UserPlus } from "lucide-react";
+import { Ban, Copy, Loader2, MessageCircle, Send, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,14 +18,20 @@ function effectiveStatus(invite: InviteRow): InviteStatus {
   return invite.status;
 }
 
-export function InviteManagement({ invites, baseUrl }: { invites: InviteRow[]; baseUrl: string }) {
+function buildMessage(template: string, patientName: string, link: string): string {
+  const withName = template.replaceAll("{NOME}", patientName);
+  if (withName.includes("{LINK}")) return withName.replaceAll("{LINK}", link);
+  return `${withName}\n${link}`;
+}
+
+export function InviteManagement({ invites, baseUrl, messageTemplate }: { invites: InviteRow[]; baseUrl: string; messageTemplate: string }) {
   const router = useRouter();
   const [patientName, setPatientName] = useState("");
   const [patientContact, setPatientContact] = useState("");
   const [notes, setNotes] = useState("");
   const [creating, setCreating] = useState(false);
   const [loadingId, setLoadingId] = useState("");
-  const [lastLink, setLastLink] = useState("");
+  const [lastInvite, setLastInvite] = useState<{ name: string; link: string } | null>(null);
 
   async function create(event: React.FormEvent) {
     event.preventDefault();
@@ -35,7 +41,7 @@ export function InviteManagement({ invites, baseUrl }: { invites: InviteRow[]; b
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Não foi possível gerar o convite.");
       const link = `${baseUrl}/questionario?convite=${data.token}`;
-      setLastLink(link);
+      setLastInvite({ name: patientName, link });
       setPatientName("");
       setPatientContact("");
       setNotes("");
@@ -51,6 +57,11 @@ export function InviteManagement({ invites, baseUrl }: { invites: InviteRow[]; b
   async function copy(token: string) {
     await navigator.clipboard.writeText(`${baseUrl}/questionario?convite=${token}`);
     toast.success("Link copiado.");
+  }
+
+  async function copyMessage(name: string, link: string) {
+    await navigator.clipboard.writeText(buildMessage(messageTemplate, name, link));
+    toast.success("Mensagem copiada. É só colar no WhatsApp da paciente.");
   }
 
   async function cancel(id: string) {
@@ -92,10 +103,13 @@ export function InviteManagement({ invites, baseUrl }: { invites: InviteRow[]; b
           </div>
         </div>
         <Button className="mt-4" disabled={creating}>{creating ? <Loader2 className="animate-spin" /> : <Send />}Gerar link</Button>
-        {lastLink && (
-          <div className="mt-5 flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="break-all text-sm font-semibold text-emerald-900">{lastLink}</p>
-            <Button type="button" size="sm" variant="secondary" onClick={() => navigator.clipboard.writeText(lastLink).then(() => toast.success("Link copiado."))}><Copy size={16} />Copiar link</Button>
+        {lastInvite && (
+          <div className="mt-5 space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="break-all text-sm font-semibold text-emerald-900">{lastInvite.link}</p>
+              <Button type="button" size="sm" variant="secondary" onClick={() => navigator.clipboard.writeText(lastInvite.link).then(() => toast.success("Link copiado."))}><Copy size={16} />Copiar link</Button>
+            </div>
+            <Button type="button" size="sm" onClick={() => copyMessage(lastInvite.name, lastInvite.link)}><MessageCircle size={16} />Copiar mensagem para o WhatsApp</Button>
           </div>
         )}
       </form>
@@ -130,6 +144,7 @@ export function InviteManagement({ invites, baseUrl }: { invites: InviteRow[]; b
                   <div className="flex flex-wrap justify-end gap-2">
                     {status === "completed" && invite.submission_id && <Button size="sm" variant="secondary" onClick={() => router.push(`/painel/respostas/${invite.submission_id}`)}>Ver resposta</Button>}
                     {status === "pending" && <Button size="sm" variant="ghost" onClick={() => copy(invite.token)}><Copy size={16} />Copiar link</Button>}
+                    {status === "pending" && <Button size="sm" variant="secondary" onClick={() => copyMessage(invite.patient_name, `${baseUrl}/questionario?convite=${invite.token}`)}><MessageCircle size={16} />Copiar mensagem</Button>}
                     {status === "pending" && <Button size="sm" variant="danger" onClick={() => cancel(invite.id)} disabled={loadingId === invite.id}><Ban size={16} />Cancelar</Button>}
                   </div>
                 </div>

@@ -1,5 +1,11 @@
 import type { PublicSettings } from "@/types/questionnaire";
 
+export const defaultInviteMessageTemplate = `Oi, {NOME}! Como você está?
+Antes do seu atendimento, precisamos conhecer um pouco melhor sua saúde, rotina e histórico. Para isso, preparamos um questionário que deverá ser preenchido pelo link abaixo:
+{LINK}
+É importante responder com sinceridade e atenção, pois essas informações ajudarão nossa equipe a compreender melhor suas necessidades e tornar seu atendimento mais individualizado.
+O preenchimento é seguro, confidencial e leva poucos minutos. Quando finalizar, não precisa nos enviar nenhum documento, pois as respostas chegarão diretamente para nossa equipe.`;
+
 export const defaultPublicSettings: PublicSettings = {
   institutionName: "Instituto Trizi",
   questionnaireName: "Questionário Digital Trizi",
