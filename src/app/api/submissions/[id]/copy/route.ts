@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { assertSameOrigin } from "@/lib/utils";
 
 const schema = z.object({
-  format: z.enum(["summary", "complete", "section"]),
+  format: z.enum(["complete", "section"]),
   sectionId: z.string().max(80).optional(),
   markInserted: z.boolean().default(false),
 });
