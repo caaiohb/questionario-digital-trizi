@@ -39,6 +39,8 @@ export interface SubmissionRow {
   inserted_into_record_at: string | null;
   inserted_into_record_by: string | null;
   archived_at: string | null;
+  pdf_path: string | null;
+  answers_archived_at: string | null;
   assigned_profile?: Pick<ProfileRow, "id" | "nome"> | null;
 }
 

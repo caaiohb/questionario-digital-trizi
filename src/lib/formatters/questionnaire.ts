@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import { answerLabel, questionnaireSections, questionsById } from "@/config/questionnaireConfig";
 import type { StoredAnswers } from "@/types/questionnaire";
@@ -20,7 +20,7 @@ function heading(title: string): string {
 }
 
 function header(submission: SubmissionForFormatting): string {
-  const date = format(new Date(submission.submitted_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+  const date = formatInTimeZone(new Date(submission.submitted_at), "America/Sao_Paulo", "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
   return [
     "QUESTIONÁRIO DIGITAL TRIZI",
     "",

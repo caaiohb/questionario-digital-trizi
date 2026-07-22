@@ -22,3 +22,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Não foi possível cancelar o convite." }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    assertSameOrigin(request);
+    const actor = await getApiProfile();
+    if (!actor) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    const { id } = await params;
+    const admin = createAdminClient();
+    const { data: invite } = await admin.from("questionnaire_invites").select("id").eq("id", id).maybeSingle();
+    if (!invite) return NextResponse.json({ error: "Convite não encontrado" }, { status: 404 });
+
+    const { error } = await admin.from("questionnaire_invites").delete().eq("id", id);
+    if (error) throw error;
+    await admin.from("audit_logs").insert({ user_id: actor.id, action: "delete_invite", entity_type: "questionnaire_invite", entity_id: id, metadata: {} });
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "Não foi possível excluir o convite." }, { status: 500 });
+  }
+}

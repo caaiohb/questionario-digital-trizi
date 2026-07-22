@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getApiProfile } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertSameOrigin } from "@/lib/utils";
+import { generateSubmissionPdfBytes } from "@/lib/pdf/generate-submission-pdf";
 
 const schema = z.object({
   format: z.enum(["complete", "section"]),
@@ -23,15 +24,28 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (parsed.data.markInserted) {
       const { data: current } = await admin
         .from("questionnaire_submissions")
-        .select("status")
+        .select("*")
         .eq("id", id)
         .is("deleted_at", null)
         .maybeSingle();
       if (!current) return NextResponse.json({ error: "Questionário não encontrado." }, { status: 404 });
+
+      // Gera e arquiva o PDF antes de remover as respostas, para nunca perder o registro.
+      let pdfPath = current.pdf_path as string | null;
+      if (!pdfPath) {
+        const bytes = await generateSubmissionPdfBytes(current);
+        pdfPath = `${id}.pdf`;
+        const { error: uploadError } = await admin.storage.from("prontuario-pdfs").upload(pdfPath, Buffer.from(bytes), { contentType: "application/pdf", upsert: true });
+        if (uploadError) return NextResponse.json({ error: "Não foi possível arquivar o PDF. As respostas não foram removidas." }, { status: 500 });
+      }
+
       const { error } = await admin.from("questionnaire_submissions").update({
         status: "inserted_into_record",
         inserted_into_record_at: new Date().toISOString(),
         inserted_into_record_by: profile.id,
+        pdf_path: pdfPath,
+        answers: {},
+        answers_archived_at: new Date().toISOString(),
       }).eq("id", id).is("deleted_at", null);
       if (error) throw error;
       if (current.status !== "inserted_into_record") {

@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
-import { Ban, Copy, Loader2, MessageCircle, Send, UserPlus } from "lucide-react";
+import { Ban, Copy, Loader2, MessageCircle, Send, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +80,22 @@ export function InviteManagement({ invites, baseUrl, messageTemplate }: { invite
     }
   }
 
+  async function remove(id: string, patientName: string) {
+    if (!window.confirm(`Excluir definitivamente o convite de "${patientName}"? Essa ação não pode ser desfeita (a resposta da paciente, se houver, não é apagada).`)) return;
+    setLoadingId(id);
+    try {
+      const response = await fetch(`/api/invites/${id}`, { method: "DELETE" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Não foi possível excluir.");
+      toast.success("Convite excluído.");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setLoadingId("");
+    }
+  }
+
   const pendingCount = invites.filter((invite) => effectiveStatus(invite) === "pending").length;
   const completedCount = invites.filter((invite) => effectiveStatus(invite) === "completed").length;
 
@@ -137,15 +153,16 @@ export function InviteManagement({ invites, baseUrl, messageTemplate }: { invite
                   </div>
                   <div><Badge tone={statusTone[status]}>{statusLabel[status]}</Badge></div>
                   <div className="text-sm text-slate-500">
-                    <p>Criado {format(new Date(invite.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                    <p>Criado {formatInTimeZone(new Date(invite.created_at), "America/Sao_Paulo", "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
                     {invite.creator?.nome && <p>por {invite.creator.nome}</p>}
-                    {status === "completed" && invite.completed_at && <p>Respondido {format(new Date(invite.completed_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>}
+                    {status === "completed" && invite.completed_at && <p>Respondido {formatInTimeZone(new Date(invite.completed_at), "America/Sao_Paulo", "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>}
                   </div>
                   <div className="flex flex-wrap justify-end gap-2">
                     {status === "completed" && invite.submission_id && <Button size="sm" variant="secondary" onClick={() => router.push(`/painel/respostas/${invite.submission_id}`)}>Ver resposta</Button>}
                     {status === "pending" && <Button size="sm" variant="ghost" onClick={() => copy(invite.token)}><Copy size={16} />Copiar link</Button>}
                     {status === "pending" && <Button size="sm" variant="secondary" onClick={() => copyMessage(invite.patient_name, `${baseUrl}/questionario?convite=${invite.token}`)}><MessageCircle size={16} />Copiar mensagem</Button>}
                     {status === "pending" && <Button size="sm" variant="danger" onClick={() => cancel(invite.id)} disabled={loadingId === invite.id}><Ban size={16} />Cancelar</Button>}
+                    <Button size="sm" variant="ghost" onClick={() => remove(invite.id, invite.patient_name)} disabled={loadingId === invite.id}>{loadingId === invite.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}Excluir</Button>
                   </div>
                 </div>
               );

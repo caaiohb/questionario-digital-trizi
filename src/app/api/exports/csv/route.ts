@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { formatInTimeZone } from "date-fns-tz";
 import { allQuestions, answerLabel } from "@/config/questionnaireConfig";
 import { getApiProfile } from "@/lib/api-auth";
 import { createClient } from "@/lib/supabase/server";
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
   }
   const headers = ["Protocolo", "Paciente", "Idade", "Peso atual (kg)", "Peso desejado (kg)", "Altura (m)", "Data de envio", "Status", "Alerta prioritário", "Versão do questionário", ...allQuestions.slice(5).map((question) => question.text)];
   const lines = [headers.map(csvEscape).join(";")];
-  for (const row of rows) { const answers = row.answers as StoredAnswers; const values = [row.protocol, row.patient_name, row.patient_age, row.current_weight, row.desired_weight, row.height, row.submitted_at, row.status, row.priority_alert ? "Sim" : "Não", row.questionnaire_version, ...allQuestions.slice(5).map((question) => answers?.[question.id] ? answerLabel(question, answers[question.id].answer) : "")]; lines.push(values.map(csvEscape).join(";")); }
+  for (const row of rows) { const answers = row.answers as StoredAnswers; const values = [row.protocol, row.patient_name, row.patient_age, row.current_weight, row.desired_weight, row.height, formatInTimeZone(new Date(row.submitted_at), "America/Sao_Paulo", "dd/MM/yyyy HH:mm"), row.status, row.priority_alert ? "Sim" : "Não", row.questionnaire_version, ...allQuestions.slice(5).map((question) => answers?.[question.id] ? answerLabel(question, answers[question.id].answer) : "")]; lines.push(values.map(csvEscape).join(";")); }
   const admin = createAdminClient();
   await admin.from("audit_logs").insert({ user_id: profile.id, action: "export_csv", entity_type: "questionnaire_submission", metadata: { records: rows.length, filters: Object.fromEntries(url.searchParams.entries()) } });
   const filename = `questionarios-trizi-${new Date().toISOString().slice(0,10)}.csv`; return new NextResponse(`\uFEFF${lines.join("\r\n")}`, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="${filename}"`, "cache-control": "private, no-store" } });
