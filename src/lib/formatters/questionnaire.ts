@@ -1,6 +1,7 @@
 import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import { answerLabel, questionnaireSections, questionsById } from "@/config/questionnaireConfig";
+import { getCustomAnswersForSection } from "@/lib/custom-questions";
 import type { StoredAnswers } from "@/types/questionnaire";
 
 export interface SubmissionForFormatting {
@@ -35,11 +36,13 @@ function header(submission: SubmissionForFormatting): string {
 }
 
 export function formatCompleteQuestionnaire(submission: SubmissionForFormatting): string {
+  const knownQuestionIds = new Set(questionsById.keys());
   const lines: string[] = [header(submission)];
   for (const section of questionnaireSections.slice(1)) {
-    const answers = section.questions
-      .map((question) => submission.answers[question.id])
-      .filter(Boolean);
+    const answers = [
+      ...section.questions.map((question) => submission.answers[question.id]).filter(Boolean),
+      ...getCustomAnswersForSection(section.id, submission.answers, knownQuestionIds),
+    ];
     if (!answers.length) continue;
     lines.push(heading(section.title));
     for (const stored of answers) {

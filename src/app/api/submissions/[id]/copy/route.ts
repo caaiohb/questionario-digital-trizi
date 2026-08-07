@@ -4,6 +4,8 @@ import { getApiProfile } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertSameOrigin } from "@/lib/utils";
 import { generateSubmissionPdfBytes } from "@/lib/pdf/generate-submission-pdf";
+import { toQuestionnaireQuestion } from "@/lib/custom-questions";
+import type { PublicCustomQuestion } from "@/lib/custom-questions";
 
 const schema = z.object({
   format: z.enum(["complete", "section"]),
@@ -33,7 +35,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       // Gera e arquiva o PDF antes de remover as respostas, para nunca perder o registro.
       let pdfPath = current.pdf_path as string | null;
       if (!pdfPath) {
-        const bytes = await generateSubmissionPdfBytes(current);
+        const { data: customRows } = await admin.from("custom_questions").select("id,section_id,gender,text,type,required,sensitive,sort_order").eq("active", true);
+        const customQuestions = (customRows ?? []).map((row) =>
+          toQuestionnaireQuestion({ id: row.id, sectionId: row.section_id, gender: row.gender, text: row.text, type: row.type, required: row.required, sensitive: row.sensitive, sortOrder: row.sort_order } as PublicCustomQuestion),
+        );
+        const bytes = await generateSubmissionPdfBytes(current, customQuestions);
         pdfPath = `${id}.pdf`;
         const { error: uploadError } = await admin.storage.from("prontuario-pdfs").upload(pdfPath, Buffer.from(bytes), { contentType: "application/pdf", upsert: true });
         if (uploadError) return NextResponse.json({ error: "Não foi possível arquivar o PDF. As respostas não foram removidas." }, { status: 500 });

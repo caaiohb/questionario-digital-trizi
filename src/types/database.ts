@@ -56,6 +56,22 @@ export interface InternalNoteRow {
 
 export type InviteStatus = "pending" | "completed" | "expired" | "cancelled";
 
+export interface CustomQuestionRow {
+  id: string;
+  section_id: string;
+  gender: "todos" | "feminino" | "masculino";
+  text: string;
+  type: "yes_no" | "text" | "textarea";
+  required: boolean;
+  sensitive: boolean;
+  active: boolean;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  creator?: Pick<ProfileRow, "id" | "nome"> | null;
+}
+
 export interface InviteRow {
   id: string;
   token: string;

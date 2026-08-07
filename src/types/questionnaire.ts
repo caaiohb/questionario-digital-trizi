@@ -55,6 +55,7 @@ export interface QuestionnaireSection {
   shortTitle: string;
   description?: string;
   order: number;
+  condition?: ConditionalRule;
   questions: QuestionnaireQuestion[];
 }
 

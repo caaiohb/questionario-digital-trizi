@@ -3,6 +3,8 @@ import { getApiProfile } from "@/lib/api-auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateSubmissionPdfBytes } from "@/lib/pdf/generate-submission-pdf";
+import { toQuestionnaireQuestion } from "@/lib/custom-questions";
+import type { PublicCustomQuestion } from "@/lib/custom-questions";
 
 export const runtime = "nodejs";
 
@@ -20,7 +22,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     if (downloadError || !file) return NextResponse.json({ error: "PDF arquivado não encontrado." }, { status: 404 });
     bytes = new Uint8Array(await file.arrayBuffer());
   } else {
-    bytes = await generateSubmissionPdfBytes(submission);
+    const { data: customRows } = await admin.from("custom_questions").select("id,section_id,gender,text,type,required,sensitive,sort_order").eq("active", true);
+    const customQuestions = (customRows ?? []).map((row) =>
+      toQuestionnaireQuestion({ id: row.id, sectionId: row.section_id, gender: row.gender, text: row.text, type: row.type, required: row.required, sensitive: row.sensitive, sortOrder: row.sort_order } as PublicCustomQuestion),
+    );
+    bytes = await generateSubmissionPdfBytes(submission, customQuestions);
   }
 
   await admin.from("audit_logs").insert({ user_id: profile.id, action: "export_pdf", entity_type: "questionnaire_submission", entity_id: id, metadata: {} });

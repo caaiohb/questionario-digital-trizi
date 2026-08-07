@@ -2,7 +2,7 @@ import type { QuestionnaireQuestion, QuestionnaireSection, RawAnswers } from "@/
 
 export const QUESTIONNAIRE_VERSION = "2026.07.1";
 
-const yesNo = [
+export const yesNo = [
   { value: "sim", label: "Sim" },
   { value: "nao", label: "Não" },
 ];
@@ -37,6 +37,10 @@ export const questionnaireSections: QuestionnaireSection[] = [
       q("identification", 4, { id: "identification_desired_weight", code: "desired_weight_kg", text: "Peso desejado", type: "number", required: true, min: 25, max: 400, step: 0.1, unit: "kg", summaryMode: "always" }),
       q("identification", 5, { id: "identification_height", code: "height_meters", text: "Altura", type: "height", required: true, helperText: "Você pode informar em centímetros ou metros. O sistema padronizará o valor em metros.", summaryMode: "always" }),
       q("identification", 6, { id: "identification_cpf", code: "patient_cpf", text: "CPF", type: "cpf", required: true, placeholder: "000.000.000-00", helperText: "Usado apenas para identificação no seu prontuário.", summaryMode: "always" }),
+      q("identification", 7, { id: "identification_sex", code: "patient_sex", text: "Sexo biológico", type: "radio", required: true, summaryMode: "always", options: [
+        { value: "feminino", label: "Feminino" },
+        { value: "masculino", label: "Masculino" },
+      ] }),
     ],
   },
   {
@@ -124,6 +128,7 @@ export const questionnaireSections: QuestionnaireSection[] = [
     title: "Ciclo menstrual e menopausa",
     shortTitle: "Ciclo menstrual",
     order: 7,
+    condition: { questionId: "identification_sex", equals: "feminino" },
     questions: [
       q("menstrual_menopause", 1, { id: "menstrual_status", code: "menstrual_status", text: "Como está sua menstruação?", type: "radio", required: true, summaryMode: "always", options: [
         { value: "regular", label: "Ciclos regulares." },
@@ -147,6 +152,7 @@ export const questionnaireSections: QuestionnaireSection[] = [
     title: "Saúde ginecológica e hormonal",
     shortTitle: "Saúde ginecológica",
     order: 8,
+    condition: { questionId: "identification_sex", equals: "feminino" },
     questions: [
       q("gynecological_hormonal", 1, { id: "hormonal_contraceptive", code: "hormonal_contraceptive", text: "Usa método contraceptivo que contenha hormônios?", type: "yes_no_na", options: yesNoNa, required: true, summaryMode: "when_yes" }),
       q("gynecological_hormonal", 2, { id: "menstrual_severe_cramps", code: "menstrual_severe_cramps", text: "Tem cólicas severas ou grande fluxo de sangue durante a menstruação?", type: "yes_no_na", options: yesNoNa, required: true, summaryMode: "when_yes" }),
@@ -166,10 +172,12 @@ export const questionnaireSections: QuestionnaireSection[] = [
     order: 9,
     questions: [
       q("sexual_health", 1, { id: "sexual_libido", code: "sexual_libido", text: "Gostaria que sua libido fosse melhor?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_yes", sensitive: true }),
-      q("sexual_health", 2, { id: "sexual_lubrication", code: "sexual_lubrication", text: "Tem ficado lubrificada durante a relação sexual?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_no", sensitive: true }),
-      q("sexual_health", 3, { id: "sexual_painless", code: "sexual_painless", text: "Consegue fazer sexo vaginal sem dor ou incômodo?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_no", sensitive: true }),
-      q("sexual_health", 4, { id: "sexual_stimuli", code: "sexual_stimuli", text: "Estímulos sexuais, como beijos, abraços, palavras sensuais ou histórias eróticas, despertam vontade de fazer sexo?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_no", sensitive: true }),
-      q("sexual_health", 5, { id: "sexual_orgasm", code: "sexual_orgasm", text: "Tem conseguido atingir o orgasmo sozinha ou na maior parte das relações sexuais?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_no", sensitive: true }),
+      q("sexual_health", 2, { id: "sexual_lubrication", code: "sexual_lubrication", text: "Tem ficado lubrificada durante a relação sexual?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_no", sensitive: true, condition: { questionId: "identification_sex", equals: "feminino" } }),
+      q("sexual_health", 3, { id: "sexual_erection", code: "sexual_erection", text: "Consegue manter uma ereção satisfatória durante a relação sexual?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_no", sensitive: true, condition: { questionId: "identification_sex", equals: "masculino" } }),
+      q("sexual_health", 4, { id: "sexual_painless", code: "sexual_painless", text: "Consegue fazer sexo vaginal sem dor ou incômodo?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_no", sensitive: true, condition: { questionId: "identification_sex", equals: "feminino" } }),
+      q("sexual_health", 5, { id: "sexual_premature_ejaculation", code: "sexual_premature_ejaculation", text: "Sente que ejacula antes do que gostaria (ejaculação precoce)?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_yes", sensitive: true, condition: { questionId: "identification_sex", equals: "masculino" } }),
+      q("sexual_health", 6, { id: "sexual_stimuli", code: "sexual_stimuli", text: "Estímulos sexuais, como beijos, abraços, palavras sensuais ou histórias eróticas, despertam vontade de fazer sexo?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_no", sensitive: true }),
+      q("sexual_health", 7, { id: "sexual_orgasm", code: "sexual_orgasm", text: "Tem conseguido atingir o orgasmo sozinho(a) ou na maior parte das relações sexuais?", type: "yes_no_prefer_not", options: yesNoPreferNot, required: true, summaryMode: "when_no", sensitive: true }),
     ],
   },
   {
@@ -177,6 +185,7 @@ export const questionnaireSections: QuestionnaireSection[] = [
     title: "Saúde das mamas e histórico oncológico",
     shortTitle: "Mamas e oncologia",
     order: 10,
+    condition: { questionId: "identification_sex", equals: "feminino" },
     questions: [
       q("breast_oncology", 1, { id: "breast_exam_normal", code: "breast_exam_normal", text: "Tem realizado o autoexame das mamas regularmente, feito avaliação médica e está tudo normal?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_no" }),
       q("breast_oncology", 2, { id: "gynecological_exam_normal", code: "gynecological_exam_normal", text: "Fez avaliação ginecológica no último ano e está tudo normal?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_no" }),
@@ -190,10 +199,46 @@ export const questionnaireSections: QuestionnaireSection[] = [
     ],
   },
   {
+    id: "male_hormonal_sexual_health",
+    title: "Saúde hormonal e sexual masculina",
+    shortTitle: "Saúde hormonal",
+    order: 11,
+    condition: { questionId: "identification_sex", equals: "masculino" },
+    questions: [
+      q("male_hormonal_sexual_health", 1, { id: "male_andropause_symptoms", code: "male_andropause_symptoms", text: "Tem sentido queda de libido, cansaço, perda de massa muscular ou humor mais instável nos últimos meses?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
+      q("male_hormonal_sexual_health", 2, { id: "male_testosterone_therapy", code: "male_testosterone_therapy", text: "Já fez ou faz reposição de testosterona?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
+      q("male_hormonal_sexual_health", 3, { id: "male_anabolic_steroid_use", code: "male_anabolic_steroid_use", text: "Já usou ou usa esteroides anabolizantes (\"bombas\") para ganho de massa muscular?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes", sensitive: true }),
+      q("male_hormonal_sexual_health", 4, { id: "male_morning_erections", code: "male_morning_erections", text: "Tem notado redução da frequência ou intensidade das ereções matinais?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes", sensitive: true }),
+      q("male_hormonal_sexual_health", 5, { id: "male_body_hair_reduction", code: "male_body_hair_reduction", text: "Tem notado queda de pelos corporais ou faciais, ou redução no crescimento da barba?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
+      q("male_hormonal_sexual_health", 6, { id: "male_gynecomastia", code: "male_gynecomastia", text: "Tem notado crescimento ou sensibilidade nas mamas (ginecomastia)?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
+      q("male_hormonal_sexual_health", 7, { id: "male_testicular_changes", code: "male_testicular_changes", text: "Notou alguma alteração nos testículos, como dor, inchaço ou nódulos?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes", sensitive: true }),
+      q("male_hormonal_sexual_health", 8, { id: "male_varicocele", code: "male_varicocele", text: "Tem diagnóstico de varicocele?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
+      q("male_hormonal_sexual_health", 9, { id: "male_fertility_difficulty", code: "male_fertility_difficulty", text: "Já teve dificuldade para engravidar a parceira?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes", sensitive: true }),
+      q("male_hormonal_sexual_health", 10, { id: "male_urinary_symptoms", code: "male_urinary_symptoms", text: "Tem apresentado dificuldade para urinar, jato urinário fraco, aumento da frequência urinária (principalmente à noite) ou necessidade de fazer força para urinar?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
+      q("male_hormonal_sexual_health", 11, { id: "male_nocturia_frequency", code: "male_nocturia_frequency", text: "Quantas vezes costuma acordar à noite para urinar?", type: "number", required: true, min: 0, max: 10, step: 1, summaryMode: "when_filled" }),
+    ],
+  },
+  {
+    id: "male_prostate_oncology",
+    title: "Saúde da próstata e histórico oncológico",
+    shortTitle: "Próstata e oncologia",
+    order: 12,
+    condition: { questionId: "identification_sex", equals: "masculino" },
+    questions: [
+      q("male_prostate_oncology", 1, { id: "male_prostate_exam_normal", code: "male_prostate_exam_normal", text: "Já fez avaliação da próstata (exame de PSA ou toque retal) no último ano e está tudo normal?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_no" }),
+      q("male_prostate_oncology", 2, { id: "male_psa_elevated", code: "male_psa_elevated", text: "Já teve resultado de PSA alterado?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
+      q("male_prostate_oncology", 3, { id: "male_prostate_cancer_diagnosis", code: "male_prostate_cancer_diagnosis", text: "Recebeu diagnóstico de câncer de próstata nos últimos anos?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes", sensitive: true }),
+      q("male_prostate_oncology", 4, { id: "male_prostate_cancer_treatment", code: "male_prostate_cancer_treatment", text: "Está em tratamento ou acompanhamento para câncer de próstata?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes", sensitive: true }),
+      q("male_prostate_oncology", 5, { id: "male_family_prostate_cancer", code: "male_family_prostate_cancer", text: "Seu pai ou irmão teve câncer de próstata?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
+      q("male_prostate_oncology", 6, { id: "male_testicular_cancer_history", code: "male_testicular_cancer_history", text: "Já teve ou tem câncer testicular?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes", sensitive: true }),
+      q("male_prostate_oncology", 7, { id: "male_unknown_blood_in_urine", code: "male_unknown_blood_in_urine", text: "Apresenta sangue na urina de causa desconhecida?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes", sensitive: true }),
+    ],
+  },
+  {
     id: "eating_weight",
     title: "Comportamento alimentar e peso",
     shortTitle: "Alimentação e peso",
-    order: 11,
+    order: 13,
     questions: [
       q("eating_weight", 1, { id: "eating_for_pleasure", code: "eating_for_pleasure", text: "Costuma comer apenas por prazer ou para relaxar, mesmo sem sentir fome?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
       q("eating_weight", 2, { id: "eating_more_than_should", code: "eating_more_than_should", text: "Tem observado que come mais do que deveria?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
@@ -211,7 +256,7 @@ export const questionnaireSections: QuestionnaireSection[] = [
     id: "weight_loss_sleep_medications",
     title: "Medicamentos para emagrecimento e sono",
     shortTitle: "Medicamentos e sono",
-    order: 12,
+    order: 14,
     questions: [
       q("weight_loss_sleep_medications", 1, { id: "weight_loss_medications_used", code: "weight_loss_medications_used", text: "Já usou medicamentos para emagrecer?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
       q("weight_loss_sleep_medications", 2, { id: "weight_loss_medication_adverse", code: "weight_loss_medication_adverse", text: "Passou mal com algum medicamento para emagrecer?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
@@ -231,7 +276,7 @@ export const questionnaireSections: QuestionnaireSection[] = [
     id: "gastrointestinal",
     title: "Saúde gastrointestinal",
     shortTitle: "Gastrointestinal",
-    order: 13,
+    order: 15,
     questions: [
       q("gastrointestinal", 1, { id: "gi_reflux", code: "gi_reflux", text: "Costuma sentir azia ou refluxo?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
       q("gastrointestinal", 2, { id: "gi_medication", code: "gi_medication", text: "Às vezes precisa usar medicamento para dor no estômago ou má digestão?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
@@ -244,7 +289,7 @@ export const questionnaireSections: QuestionnaireSection[] = [
     id: "allergies_neurological",
     title: "Alergias, imunidade e histórico neurológico",
     shortTitle: "Alergias e imunidade",
-    order: 14,
+    order: 16,
     questions: [
       q("allergies_neurological", 1, { id: "food_allergy", code: "food_allergy", text: "Tem algum tipo de alergia ou intolerância alimentar?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
       q("allergies_neurological", 2, { id: "food_allergy_name", code: "food_allergy_name", text: "Qual alergia ou intolerância?", type: "text", required: true, condition: { questionId: "food_allergy", equals: "sim" }, summaryMode: "when_filled" }),
@@ -261,7 +306,7 @@ export const questionnaireSections: QuestionnaireSection[] = [
     id: "medications_other_conditions",
     title: "Medicamentos e outras doenças",
     shortTitle: "Medicamentos",
-    order: 15,
+    order: 17,
     questions: [
       q("medications_other_conditions", 1, { id: "antidepressant_use", code: "antidepressant_use", text: "Usa medicamentos antidepressivos?", type: "yes_no", options: yesNo, required: true, summaryMode: "when_yes" }),
       q("medications_other_conditions", 2, { id: "antidepressant_names", code: "antidepressant_names", text: "Nome dos medicamentos antidepressivos", type: "textarea", required: true, condition: { questionId: "antidepressant_use", equals: "sim" }, summaryMode: "when_filled" }),
@@ -295,12 +340,26 @@ export const menopauseAutoAnswerQuestionIds = [
   "premenstrual_migraines",
 ];
 
+export function isSectionVisible(section: QuestionnaireSection, answers: RawAnswers): boolean {
+  if (!section.condition) return true;
+  const value = answers[section.condition.questionId] ?? null;
+  if (section.condition.equals !== undefined) return value === section.condition.equals;
+  if (section.condition.in) return section.condition.in.includes(value as never);
+  return true;
+}
+
 export function isQuestionVisible(question: QuestionnaireQuestion, answers: RawAnswers): boolean {
+  const section = sectionsById.get(question.sectionId);
+  if (section && !isSectionVisible(section, answers)) return false;
   if (!question.condition) return true;
   const value = answers[question.condition.questionId] ?? null;
   if (question.condition.equals !== undefined) return value === question.condition.equals;
   if (question.condition.in) return question.condition.in.includes(value as never);
   return true;
+}
+
+export function getVisibleSections(answers: RawAnswers): QuestionnaireSection[] {
+  return questionnaireSections.filter((section) => isSectionVisible(section, answers));
 }
 
 export function normalizeMenopauseAnswers(answers: RawAnswers): RawAnswers {

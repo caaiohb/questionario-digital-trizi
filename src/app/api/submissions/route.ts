@@ -3,6 +3,8 @@ import { subDays } from "date-fns";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildStoredAnswers, submissionPayloadSchema, validateQuestionnaireAnswers } from "@/lib/validation/questionnaire";
 import { assertSameOrigin, getRequestIp, hmac, normalizeSearchText } from "@/lib/utils";
+import { toQuestionnaireQuestion } from "@/lib/custom-questions";
+import type { PublicCustomQuestion } from "@/lib/custom-questions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,8 +39,11 @@ export async function POST(request: Request) {
 
     const parsed = submissionPayloadSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Dados inválidos. Revise o questionário." }, { status: 400 });
-    console.log("[submissions] inviteToken recebido:", JSON.stringify(parsed.data.inviteToken ?? null));
-    const validation = validateQuestionnaireAnswers(parsed.data.answers);
+    const { data: customRows } = await admin.from("custom_questions").select("id,section_id,gender,text,type,required,sensitive,sort_order").eq("active", true);
+    const customQuestions = (customRows ?? []).map((row) =>
+      toQuestionnaireQuestion({ id: row.id, sectionId: row.section_id, gender: row.gender, text: row.text, type: row.type, required: row.required, sensitive: row.sensitive, sortOrder: row.sort_order } as PublicCustomQuestion),
+    );
+    const validation = validateQuestionnaireAnswers(parsed.data.answers, customQuestions);
     if (!validation.success) return NextResponse.json({ error: "Existem respostas obrigatórias pendentes.", fields: validation.errors }, { status: 422 });
 
     const answers = validation.answers;
@@ -68,7 +73,7 @@ export async function POST(request: Request) {
       current_weight: currentWeight,
       desired_weight: desiredWeight,
       height,
-      answers: buildStoredAnswers(answers),
+      answers: buildStoredAnswers(answers, customQuestions),
       questionnaire_version: parsed.data.questionnaireVersion,
       status: "new",
       priority_alert: priorityAlert,

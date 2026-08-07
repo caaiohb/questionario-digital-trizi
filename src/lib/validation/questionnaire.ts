@@ -6,7 +6,7 @@ import {
   QUESTIONNAIRE_VERSION,
   sectionsById,
 } from "@/config/questionnaireConfig";
-import type { AnswerValue, RawAnswers, StoredAnswers } from "@/types/questionnaire";
+import type { AnswerValue, QuestionnaireQuestion, RawAnswers, StoredAnswers } from "@/types/questionnaire";
 
 const answerValueSchema = z.union([
   z.string().max(5000),
@@ -48,8 +48,8 @@ function isValidCpf(rawValue: string): boolean {
   return secondDigit === Number(digits[10]);
 }
 
-function validateQuestionValue(questionId: string, value: AnswerValue): string | null {
-  const question = allQuestions.find((item) => item.id === questionId);
+function validateQuestionValue(questionId: string, value: AnswerValue, extraQuestions: QuestionnaireQuestion[]): string | null {
+  const question = allQuestions.find((item) => item.id === questionId) ?? extraQuestions.find((item) => item.id === questionId);
   if (!question) return "Pergunta inválida.";
 
   if (question.type === "cpf") {
@@ -81,10 +81,10 @@ function validateQuestionValue(questionId: string, value: AnswerValue): string |
 }
 
 
-export function validateSectionAnswers(sectionId: string, input: RawAnswers): Record<string, string> {
+export function validateSectionAnswers(sectionId: string, input: RawAnswers, extraQuestions: QuestionnaireQuestion[] = []): Record<string, string> {
   const answers = normalizeMenopauseAnswers(input);
   const errors: Record<string, string> = {};
-  for (const question of allQuestions.filter((item) => item.sectionId === sectionId)) {
+  for (const question of [...allQuestions, ...extraQuestions].filter((item) => item.sectionId === sectionId)) {
     if (!isQuestionVisible(question, answers)) continue;
     const value = answers[question.id];
     if (question.required && isEmpty(value)) {
@@ -92,14 +92,14 @@ export function validateSectionAnswers(sectionId: string, input: RawAnswers): Re
       continue;
     }
     if (!isEmpty(value)) {
-      const error = validateQuestionValue(question.id, value as AnswerValue);
+      const error = validateQuestionValue(question.id, value as AnswerValue, extraQuestions);
       if (error) errors[question.id] = error;
     }
   }
   return errors;
 }
 
-export function validateQuestionnaireAnswers(input: RawAnswers): {
+export function validateQuestionnaireAnswers(input: RawAnswers, extraQuestions: QuestionnaireQuestion[] = []): {
   success: boolean;
   answers: RawAnswers;
   errors: Record<string, string>;
@@ -107,7 +107,7 @@ export function validateQuestionnaireAnswers(input: RawAnswers): {
   const answers = normalizeMenopauseAnswers(input);
   const errors: Record<string, string> = {};
 
-  for (const question of allQuestions) {
+  for (const question of [...allQuestions, ...extraQuestions]) {
     if (!isQuestionVisible(question, answers)) continue;
     const value = answers[question.id];
     if (question.required && isEmpty(value)) {
@@ -115,7 +115,7 @@ export function validateQuestionnaireAnswers(input: RawAnswers): {
       continue;
     }
     if (!isEmpty(value)) {
-      const error = validateQuestionValue(question.id, value as AnswerValue);
+      const error = validateQuestionValue(question.id, value as AnswerValue, extraQuestions);
       if (error) errors[question.id] = error;
     }
   }
@@ -123,10 +123,10 @@ export function validateQuestionnaireAnswers(input: RawAnswers): {
   return { success: Object.keys(errors).length === 0, answers, errors };
 }
 
-export function buildStoredAnswers(rawAnswers: RawAnswers): StoredAnswers {
+export function buildStoredAnswers(rawAnswers: RawAnswers, extraQuestions: QuestionnaireQuestion[] = []): StoredAnswers {
   const normalized = normalizeMenopauseAnswers(rawAnswers);
   return Object.fromEntries(
-    allQuestions
+    [...allQuestions, ...extraQuestions]
       .filter((question) => isQuestionVisible(question, normalized))
       .filter((question) => normalized[question.id] !== undefined && normalized[question.id] !== "")
       .map((question) => {
