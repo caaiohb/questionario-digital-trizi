@@ -4,11 +4,10 @@ import { useState } from "react";
 import { Sparkles, Loader2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
-export function AiSummary({ id, archived }: { id: string; archived?: boolean }) {
+export function AiSummary({ id }: { id: string; archived?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [prompt, setPrompt] = useState<string | null>(null);
 
-  if (archived) return null;
 
   async function copyText(text: string) {
     try {

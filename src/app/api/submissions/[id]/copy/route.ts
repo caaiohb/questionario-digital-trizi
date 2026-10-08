@@ -1,3 +1,4 @@
+import { buildAiPrompt } from "@/lib/ai-prompt";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getApiProfile } from "@/lib/api-auth";
@@ -50,7 +51,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         inserted_into_record_at: new Date().toISOString(),
         inserted_into_record_by: profile.id,
         pdf_path: pdfPath,
-        answers: {},
+        ...({ ai_prompt_text: buildAiPrompt(current) } as object), answers: {},
         answers_archived_at: new Date().toISOString(),
       }).eq("id", id).is("deleted_at", null);
       if (error) throw error;
