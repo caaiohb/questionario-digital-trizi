@@ -1,5 +1,22 @@
 const BLOCKED_KEY = /full_name|name|nome|cpf|email|phone|telefone|whatsapp|document|rg_|address|endereco/i;
 
+export const AI_INSTRUCTIONS_KEY = "ai_prompt_instructions";
+export const DATA_MARKER = "=== RESPOSTAS DA PACIENTE (sem identificação) ===";
+
+export const DEFAULT_AI_INSTRUCTIONS = `Segue o questionário de avaliação inicial de uma paciente do Instituto Trizi, sem nome nem CPF.
+
+Com base no que você já conhece do meu estilo de consulta e do que busco captar nas pacientes, me ajude a me preparar para a consulta:
+
+1. Resumo da paciente (4 a 6 linhas)
+2. Principais dores, queixas e motivações que ela demonstrou
+3. Pontos de atenção clínica ou emocional (se houver sinal de sofrimento importante, destaque primeiro)
+4. Gatilhos e pontos de abordagem: o que ela respondeu e como posso conduzir a conversa
+5. Como conectar o Plano Trizi ao que ela vive e deseja
+6. Possíveis objeções e como respondê-las
+7. Perguntas abertas para aprofundar na consulta
+
+Baseie-se somente no que está respondido, sem inventar dados e sem diagnosticar.`;
+
 type StoredItem = { question?: string; answer?: unknown; section?: string };
 
 function fmt(value: unknown): string {
@@ -9,26 +26,7 @@ function fmt(value: unknown): string {
   return JSON.stringify(value);
 }
 
-const INSTRUCOES = `Você é um assistente de apoio da equipe do Instituto Trizi (clínica de emagrecimento e saúde hormonal). Abaixo estão as respostas ANONIMIZADAS de um questionário de avaliação inicial de uma paciente. Prepare um material de apoio para a Dra. Janifer conduzir a consulta e ajudar a paciente a decidir pelo "Plano Trizi".
-
-Regras:
-- Não faça diagnóstico, não prescreva e não prometa resultados. Fale em "sinais a explorar na consulta".
-- Baseie-se SOMENTE no que foi respondido. Não invente dados.
-- "Gatilhos" são as motivações reais da paciente (dor, objetivo, impacto na vida, tentativas anteriores), a serem acolhidas com empatia e ética, sem manipulação, sem pressão e sem explorar medos.
-- Se houver sinal de sofrimento emocional importante ou pensamentos de morte, destaque em ALERTAS e oriente acolhimento antes de qualquer oferta.
-- Português do Brasil, tom profissional e acolhedor.
-
-Responda neste formato, com títulos e tópicos curtos:
-1. RESUMO (4 a 6 linhas com o panorama da paciente)
-2. QUEIXAS PRINCIPAIS
-3. HISTÓRICO RELEVANTE (tentativas anteriores, condições, medicamentos, hábitos)
-4. ALERTAS (pontos de atenção clínica/emocional; "nenhum" se não houver)
-5. GATILHOS / PONTOS DE ABORDAGEM (para cada um: tema, o que ela respondeu, como a doutora pode abordar)
-6. CONEXÃO COM O PLANO TRIZI (como o plano responde às dores citadas, em linguagem de benefício)
-7. POSSÍVEIS OBJEÇÕES E COMO RESPONDER
-8. PERGUNTAS ABERTAS PARA APROFUNDAR NA CONSULTA`;
-
-/** Retorna o prompt anonimizado, ou null se não houver respostas. */
+/** Bloco com as respostas anonimizadas (sem instruções). Null se não houver respostas. */
 export function buildAiPrompt(row: unknown): string | null {
   const r = (row ?? {}) as Record<string, unknown>;
   const answers = (r.answers ?? {}) as Record<string, StoredItem>;
@@ -47,5 +45,5 @@ export function buildAiPrompt(row: unknown): string | null {
     }
     lines.push(`- ${item.question ?? ""}: ${a}`);
   }
-  return `${INSTRUCOES}\n\n=== RESPOSTAS DA PACIENTE (sem identificação) ===\n${lines.join("\n")}`;
+  return `${DATA_MARKER}\n${lines.join("\n")}`;
 }

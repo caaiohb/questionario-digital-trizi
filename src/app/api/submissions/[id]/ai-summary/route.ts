@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertSameOrigin } from "@/lib/utils";
-import { buildAiPrompt } from "@/lib/ai-prompt";
+import { getActiveStaffId } from "@/lib/ai-staff";
+import { AI_INSTRUCTIONS_KEY, DATA_MARKER, DEFAULT_AI_INSTRUCTIONS, buildAiPrompt } from "@/lib/ai-prompt";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,11 +10,8 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     assertSameOrigin(request);
-    const supabase = await createClient();
-    const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
-    const { data: profile } = await supabase.from("profiles").select("id,ativo").eq("user_id", auth.user.id).maybeSingle();
-    if (!profile?.ativo) return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
+    const staff = await getActiveStaffId();
+    if (!staff) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
 
     const { id } = await ctx.params;
     const admin = createAdminClient();
@@ -26,13 +23,23 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
     if (!row || (row as Record<string, unknown>).deleted_at) return NextResponse.json({ error: "Questionário não encontrado." }, { status: 404 });
 
     const saved = (row as unknown as Record<string, unknown>).ai_prompt_text;
-    const prompt = typeof saved === "string" && saved.trim() ? saved : buildAiPrompt(row);
-    if (!prompt) {
+    let data: string | null = null;
+    if (typeof saved === "string" && saved.trim()) {
+      const i = saved.indexOf(DATA_MARKER);
+      data = i >= 0 ? saved.slice(i) : `${DATA_MARKER}\n${saved}`;
+    } else {
+      data = buildAiPrompt(row);
+    }
+    if (!data) {
       return NextResponse.json({ error: "Este questionário foi arquivado antes desta função existir e não tem mais as respostas." }, { status: 409 });
     }
 
-    await admin.from("audit_logs").insert({ user_id: profile.id, action: "ai_prompt_copied", entity_type: "questionnaire_submission", entity_id: id, metadata: {} });
-    return NextResponse.json({ prompt });
+    const { data: setting } = await admin.from("system_settings").select("setting_value").eq("setting_key", AI_INSTRUCTIONS_KEY).maybeSingle();
+    const v = (setting as { setting_value?: unknown } | null)?.setting_value;
+    const instructions = typeof v === "string" && v.trim() ? v : DEFAULT_AI_INSTRUCTIONS;
+
+    await admin.from("audit_logs").insert({ user_id: staff, action: "ai_prompt_copied", entity_type: "questionnaire_submission", entity_id: id, metadata: {} });
+    return NextResponse.json({ prompt: `${instructions.trim()}\n\n${data}` });
   } catch (e) {
     console.error("[ai-summary] error", e instanceof Error ? e.message : e);
     return NextResponse.json({ error: "Não foi possível gerar o texto." }, { status: 500 });
