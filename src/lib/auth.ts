@@ -37,11 +37,11 @@ export async function requireStaff(): Promise<StaffProfile> {
   return profile as StaffProfile;
 }
 
-/** Área da médica: acessível pelo perfil "doctor" (e por administradores, para acompanhar). */
+/** Área dos médicos: acessível somente pelo perfil "doctor". Os demais perfis voltam ao painel. */
 export async function requireDoctorArea(): Promise<CurrentProfile> {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
-  if (profile.perfil === "employee") redirect("/painel");
+  if (profile.perfil !== "doctor") redirect("/painel");
   return profile;
 }
 
