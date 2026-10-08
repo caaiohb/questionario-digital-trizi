@@ -5,9 +5,7 @@ import { assertSameOrigin } from "@/lib/utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
 const BLOCKED_KEY = /full_name|name|nome|cpf|email|phone|telefone|whatsapp|document|rg_|address|endereco/i;
 
 type StoredItem = { question?: string; answer?: unknown; section?: string };
@@ -19,33 +17,28 @@ function fmt(value: unknown): string {
   return JSON.stringify(value);
 }
 
-const SYSTEM = `Você é um assistente de apoio comercial-clínico do Instituto Trizi (clínica de emagrecimento e saúde hormonal). Você recebe as respostas ANONIMIZADAS de um questionário de avaliação inicial e prepara um material de apoio para a Dra. Janifer conduzir a consulta e ajudar a paciente a fechar o "Plano Trizi".
+const INSTRUCOES = `Você é um assistente de apoio da equipe do Instituto Trizi (clínica de emagrecimento e saúde hormonal). Abaixo estão as respostas ANONIMIZADAS de um questionário de avaliação inicial de uma paciente. Prepare um material de apoio para a Dra. Janifer conduzir a consulta e ajudar a paciente a decidir pelo "Plano Trizi".
 
 Regras:
 - Não faça diagnóstico, não prescreva e não prometa resultados. Fale em "sinais a explorar na consulta".
-- Baseie-se SOMENTE no que foi respondido. Nunca invente dados.
-- Os "gatilhos" são motivações reais da paciente (dor, objetivo, impacto na vida, tentativas anteriores) a serem acolhidos com empatia, de forma ética, sem manipulação, sem pressão e sem explorar medos.
-- Se houver sinal de sofrimento emocional importante ou pensamentos de morte, coloque em "alertas" e oriente acolhimento antes de qualquer oferta.
+- Baseie-se SOMENTE no que foi respondido. Não invente dados.
+- "Gatilhos" são as motivações reais da paciente (dor, objetivo, impacto na vida, tentativas anteriores), a serem acolhidas com empatia e ética, sem manipulação, sem pressão e sem explorar medos.
+- Se houver sinal de sofrimento emocional importante ou pensamentos de morte, destaque em ALERTAS e oriente acolhimento antes de qualquer oferta.
 - Português do Brasil, tom profissional e acolhedor.
 
-Responda APENAS com JSON válido, sem texto fora dele, neste formato:
-{
- "resumo": "parágrafo de 4 a 6 linhas com o panorama da paciente",
- "queixas_principais": ["..."],
- "historico_relevante": ["tentativas anteriores, condições, medicamentos, hábitos relevantes"],
- "alertas": ["pontos de atenção clínica/emocional; vazio se não houver"],
- "gatilhos": [{"tema":"...","evidencia":"o que ela respondeu","como_abordar":"sugestão de fala/pergunta da doutora"}],
- "conexao_plano_trizi": "como o Plano Trizi pode responder às dores citadas, em linguagem de benefício",
- "possiveis_objecoes": [{"objecao":"...","resposta_sugerida":"..."}],
- "perguntas_para_consulta": ["perguntas abertas para aprofundar"]
-}`;
+Responda neste formato, com títulos e tópicos curtos:
+1. RESUMO (4 a 6 linhas com o panorama da paciente)
+2. QUEIXAS PRINCIPAIS
+3. HISTÓRICO RELEVANTE (tentativas anteriores, condições, medicamentos, hábitos)
+4. ALERTAS (pontos de atenção clínica/emocional; "nenhum" se não houver)
+5. GATILHOS / PONTOS DE ABORDAGEM (para cada um: tema, o que ela respondeu, como a doutora pode abordar)
+6. CONEXÃO COM O PLANO TRIZI (como o plano responde às dores citadas, em linguagem de benefício)
+7. POSSÍVEIS OBJEÇÕES E COMO RESPONDER
+8. PERGUNTAS ABERTAS PARA APROFUNDAR NA CONSULTA`;
 
 export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     assertSameOrigin(request);
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) return NextResponse.json({ error: "Integração de IA não configurada (ANTHROPIC_API_KEY)." }, { status: 503 });
-
     const supabase = await createClient();
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
@@ -80,31 +73,12 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
       lines.push(`- ${item.question ?? ""}: ${a}`);
     }
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 3000,
-        system: SYSTEM,
-        messages: [{ role: "user", content: `Respostas da paciente (sem identificação):\n${lines.join("\n")}` }],
-      }),
-    });
-    if (!res.ok) {
-      console.error("[ai-summary] anthropic status", res.status);
-      return NextResponse.json({ error: "A IA não conseguiu gerar o resumo agora. Tente novamente." }, { status: 502 });
-    }
-    const body = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
-    const text = (body.content ?? []).filter((c) => c.type === "text").map((c) => c.text ?? "").join("");
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return NextResponse.json({ error: "Resposta da IA em formato inesperado. Tente novamente." }, { status: 502 });
-    let summary: unknown;
-    try { summary = JSON.parse(match[0]); } catch { return NextResponse.json({ error: "Resposta da IA em formato inesperado. Tente novamente." }, { status: 502 }); }
+    const prompt = `${INSTRUCOES}\n\n=== RESPOSTAS DA PACIENTE (sem identificação) ===\n${lines.join("\n")}`;
 
-    await admin.from("audit_logs").insert({ user_id: profile.id, action: "ai_summary_generated", entity_type: "questionnaire_submission", entity_id: id, metadata: { model: MODEL } });
-    return NextResponse.json({ summary });
+    await admin.from("audit_logs").insert({ user_id: profile.id, action: "ai_prompt_copied", entity_type: "questionnaire_submission", entity_id: id, metadata: {} });
+    return NextResponse.json({ prompt });
   } catch (e) {
     console.error("[ai-summary] error", e instanceof Error ? e.message : e);
-    return NextResponse.json({ error: "Não foi possível gerar o resumo." }, { status: 500 });
+    return NextResponse.json({ error: "Não foi possível gerar o texto." }, { status: 500 });
   }
 }
