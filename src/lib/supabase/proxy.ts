@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  const isPanel = request.nextUrl.pathname.startsWith("/painel");
+  const isPanel = request.nextUrl.pathname.startsWith("/painel") || request.nextUrl.pathname.startsWith("/medica");
   if (!isPanel) return NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

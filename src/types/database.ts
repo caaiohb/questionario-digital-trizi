@@ -7,7 +7,7 @@ export interface ProfileRow {
   user_id: string;
   nome: string;
   email: string;
-  perfil: "administrator" | "employee";
+  perfil: "administrator" | "employee" | "doctor";
   ativo: boolean;
   created_at: string;
   updated_at: string;
