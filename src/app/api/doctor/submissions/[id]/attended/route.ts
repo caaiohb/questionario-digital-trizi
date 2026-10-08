@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getDoctorApiProfile } from "@/lib/api-auth";
+import { getAttendedApiProfile } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertSameOrigin } from "@/lib/utils";
 
@@ -8,11 +8,11 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({ attended: z.boolean() });
 
-/** Marca (ou desfaz) que a médica já atendeu o paciente. Remove/recoloca o alerta de pendência. */
+/** Marca (ou desfaz) que o paciente já foi atendido. A médica, o administrador ou um funcionário podem fazer isso (caso a médica esqueça). */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     assertSameOrigin(request);
-    const profile = await getDoctorApiProfile();
+    const profile = await getAttendedApiProfile();
     if (!profile) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
@@ -30,7 +30,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (error) throw error;
     if (!data) return NextResponse.json({ error: "Questionário não encontrado." }, { status: 404 });
 
-    await admin.from("audit_logs").insert({ user_id: profile.id, action: parsed.data.attended ? "doctor_marked_attended" : "doctor_reopened", entity_type: "questionnaire_submission", entity_id: id, metadata: {} });
+    await admin.from("audit_logs").insert({ user_id: profile.id, action: parsed.data.attended ? "doctor_marked_attended" : "doctor_reopened", entity_type: "questionnaire_submission", entity_id: id, metadata: { by_role: profile.perfil, by_name: profile.nome } });
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("[doctor/attended] erro", e instanceof Error ? e.message : e);

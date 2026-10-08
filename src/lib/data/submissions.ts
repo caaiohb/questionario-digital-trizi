@@ -48,7 +48,7 @@ export async function listSubmissions(filters: SubmissionFilters) {
   const to = from + PAGE_SIZE - 1;
   let query = supabase
     .from("questionnaire_submissions")
-    .select("id,protocol,patient_name,patient_age,submitted_at,status,priority_alert,possible_duplicate,assigned_user_id,assigned_profile:profiles!questionnaire_submissions_assigned_user_id_fkey(id,nome)", { count: "exact" });
+    .select("id,protocol,patient_name,patient_age,submitted_at,status,priority_alert,possible_duplicate,doctor_attended_at,assigned_user_id,assigned_profile:profiles!questionnaire_submissions_assigned_user_id_fkey(id,nome)", { count: "exact" });
 
   if (filters.query?.trim()) {
     const raw = filters.query.trim();

@@ -30,6 +30,7 @@ interface AttendedRow {
   protocol: string;
   patient_name: string;
   doctor_attended_at: string;
+  doctor_attended_by: string | null;
 }
 
 export default async function DoctorHomePage() {
@@ -46,7 +47,7 @@ export default async function DoctorHomePage() {
       .limit(100),
     admin
       .from("questionnaire_submissions")
-      .select("id,protocol,patient_name,doctor_attended_at")
+      .select("id,protocol,patient_name,doctor_attended_at,doctor_attended_by")
       .not("doctor_attended_at", "is", null)
       .is("deleted_at", null)
       .order("doctor_attended_at", { ascending: false })
@@ -56,6 +57,9 @@ export default async function DoctorHomePage() {
   const setupError = pendingResult.error ? "Não foi possível carregar os pendentes. Confirme que a migration da área da médica foi executada no Supabase." : null;
   const pending = (pendingResult.data ?? []) as unknown as PendingRow[];
   const attended = (attendedResult.data ?? []) as unknown as AttendedRow[];
+  const markerIds = Array.from(new Set(attended.map((row) => row.doctor_attended_by).filter((value): value is string => Boolean(value))));
+  const markers = markerIds.length ? await admin.from("profiles").select("id,nome,perfil").in("id", markerIds) : { data: [] };
+  const markerById = new Map(((markers.data ?? []) as Array<{ id: string; nome: string; perfil: string }>).map((m) => [m.id, m]));
   const priorityCount = pending.filter((row) => row.priority_alert).length;
 
   return (
@@ -120,7 +124,7 @@ export default async function DoctorHomePage() {
               <div key={row.id} className="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-semibold">{row.patient_name}</p>
-                  <p className="text-xs text-slate-500">Atendido em {fmt(row.doctor_attended_at)} · {row.protocol}</p>
+                  <p className="text-xs text-slate-500">Atendido em {fmt(row.doctor_attended_at)}{(() => { const m = row.doctor_attended_by ? markerById.get(row.doctor_attended_by) : null; return m && m.perfil !== "doctor" ? ` · marcado por ${m.nome}` : ""; })()} · {row.protocol}</p>
                 </div>
                 <div className="flex gap-2">
                   <Link href={`/medica/${row.id}`}><Button size="sm" variant="ghost"><Eye size={16} />Ver</Button></Link>

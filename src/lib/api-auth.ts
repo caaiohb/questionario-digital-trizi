@@ -14,3 +14,8 @@ export async function getDoctorApiProfile(): Promise<CurrentProfile | null> {
   if (!profile || profile.perfil === "employee") return null;
   return profile;
 }
+
+/** Perfil para marcar/reabrir "atendido": médica, administrador ou funcionário (caso a médica esqueça). */
+export async function getAttendedApiProfile(): Promise<CurrentProfile | null> {
+  return getCurrentProfile();
+}
