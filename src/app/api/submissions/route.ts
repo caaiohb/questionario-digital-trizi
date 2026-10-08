@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { buildStoredAnswers, submissionPayloadSchema, validateQuestionnaireAnswers } from "@/lib/validation/questionnaire";
 import { assertSameOrigin, getRequestIp, hmac, normalizeSearchText } from "@/lib/utils";
 import { toQuestionnaireQuestion } from "@/lib/custom-questions";
+import { loadQuestionOverrides } from "@/lib/question-overrides-server";
 import type { PublicCustomQuestion } from "@/lib/custom-questions";
 
 export const runtime = "nodejs";
@@ -43,7 +44,8 @@ export async function POST(request: Request) {
     const customQuestions = (customRows ?? []).map((row) =>
       toQuestionnaireQuestion({ id: row.id, sectionId: row.section_id, gender: row.gender, text: row.text, type: row.type, required: row.required, sensitive: row.sensitive, sortOrder: row.sort_order } as PublicCustomQuestion),
     );
-    const validation = validateQuestionnaireAnswers(parsed.data.answers, customQuestions);
+    const overrides = await loadQuestionOverrides(admin);
+    const validation = validateQuestionnaireAnswers(parsed.data.answers, customQuestions, overrides);
     if (!validation.success) return NextResponse.json({ error: "Existem respostas obrigatórias pendentes.", fields: validation.errors }, { status: 422 });
 
     const answers = validation.answers;
@@ -73,7 +75,7 @@ export async function POST(request: Request) {
       current_weight: currentWeight,
       desired_weight: desiredWeight,
       height,
-      answers: buildStoredAnswers(answers, customQuestions),
+      answers: buildStoredAnswers(answers, customQuestions, overrides),
       questionnaire_version: parsed.data.questionnaireVersion,
       status: "new",
       priority_alert: priorityAlert,

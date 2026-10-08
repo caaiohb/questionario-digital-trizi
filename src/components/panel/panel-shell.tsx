@@ -15,7 +15,7 @@ const baseItems = [
 ];
 const adminItems = [
   { href: "/painel/usuarios", label: "Funcionários", icon: Users },
-  { href: "/painel/perguntas", label: "Perguntas por sexo", icon: HelpCircle },
+  { href: "/painel/perguntas", label: "Perguntas", icon: HelpCircle },
   { href: "/painel/configuracoes", label: "Configurações", icon: Settings },
   { href: "/painel/auditoria", label: "Auditoria", icon: ShieldCheck },
 ];

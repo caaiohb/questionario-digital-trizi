@@ -105,7 +105,7 @@ export function AiSummary({ id }: { id: string; archived?: boolean }) {
       {prompt && (
         <div className="mt-3">
           <textarea readOnly value={prompt} rows={8} className="w-full rounded-md border p-2 text-xs" onFocus={(e) => e.currentTarget.select()} />
-          <button type="button" className="mt-2 inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm" onClick={async () => { (await copyText(prompt)) ? toast.success("Prompt copiado!") : toast.error("Selecione o texto e use Ctrl+C."); }}>
+          <button type="button" className="mt-2 inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm" onClick={async () => { if (await copyText(prompt)) toast.success("Prompt copiado!"); else toast.error("Selecione o texto e use Ctrl+C."); }}>
             <Copy className="h-4 w-4" /> Copiar de novo
           </button>
         </div>

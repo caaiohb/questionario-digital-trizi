@@ -3,9 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ChevronLeft, ChevronRight, LockKeyhole, MailWarning, ShieldCheck } from "lucide-react";
-import { questionnaireSections, isQuestionVisible, getVisibleSections, menopauseAutoAnswerQuestionIds, menopauseStatuses, normalizeMenopauseAnswers } from "@/config/questionnaireConfig";
-import { mergeCustomQuestions } from "@/lib/custom-questions";
-import { useCustomQuestions } from "@/hooks/use-custom-questions";
+import { questionnaireSections, isQuestionVisible, menopauseAutoAnswerQuestionIds, menopauseStatuses, normalizeMenopauseAnswers } from "@/config/questionnaireConfig";
+import { getEffectiveSections, mergeCustomQuestions } from "@/lib/custom-questions";
+import { useQuestionConfig } from "@/hooks/use-question-config";
 import { usePublicSettings } from "@/hooks/use-public-settings";
 import { loadDraft, saveDraft } from "@/lib/draft";
 import { validateSectionAnswers } from "@/lib/validation/questionnaire";
@@ -19,7 +19,7 @@ import type { InviteState } from "@/app/questionario/page";
 
 export function QuestionnaireWizard({ initialStage = 0, invite = null }: { initialStage?: number; invite?: InviteState | null }) {
   const settings = usePublicSettings();
-  const customQuestions = useCustomQuestions();
+  const { customQuestions, overrides } = useQuestionConfig();
   const router = useRouter();
   const [stage, setStage] = useState(Math.max(0, Math.min(initialStage, questionnaireSections.length - 1)));
   const [consentAccepted, setConsentAccepted] = useState(false);
@@ -66,10 +66,10 @@ export function QuestionnaireWizard({ initialStage = 0, invite = null }: { initi
     }
   }, [answers.menstrual_status, form, answers]);
 
-  const visibleSections = useMemo(() => getVisibleSections(answers), [answers]);
+  const visibleSections = useMemo(() => getEffectiveSections(answers, customQuestions, overrides), [answers, customQuestions, overrides]);
   const clampedStage = Math.min(stage, visibleSections.length - 1);
   const section = visibleSections[clampedStage];
-  const visibleQuestions = useMemo(() => mergeCustomQuestions(section, customQuestions).filter((question) => isQuestionVisible(question, answers)), [section, answers, customQuestions]);
+  const visibleQuestions = useMemo(() => mergeCustomQuestions(section, customQuestions, overrides).filter((question) => isQuestionVisible(question, answers)), [section, answers, customQuestions, overrides]);
   const progress = Math.round(((clampedStage + 1) / visibleSections.length) * 100);
   const priorityYes = answers.emotional_death_thoughts === "sim";
 
@@ -89,7 +89,7 @@ export function QuestionnaireWizard({ initialStage = 0, invite = null }: { initi
   function goForward() {
     const normalized = normalizeMenopauseAnswers(form.getValues());
     for (const [key, value] of Object.entries(normalized)) form.setValue(key, value, { shouldDirty: false });
-    const sectionErrors = validateSectionAnswers(section.id, normalized, customQuestions);
+    const sectionErrors = validateSectionAnswers(section.id, normalized, customQuestions, overrides);
     setErrors(sectionErrors);
     if (Object.keys(sectionErrors).length) {
       const first = document.getElementById(Object.keys(sectionErrors)[0]);

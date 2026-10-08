@@ -6,6 +6,8 @@ import {
   QUESTIONNAIRE_VERSION,
   sectionsById,
 } from "@/config/questionnaireConfig";
+import { applyQuestionOverrides } from "@/lib/question-overrides";
+import type { QuestionOverrides } from "@/lib/question-overrides";
 import type { AnswerValue, QuestionnaireQuestion, RawAnswers, StoredAnswers } from "@/types/questionnaire";
 
 const answerValueSchema = z.union([
@@ -81,10 +83,10 @@ function validateQuestionValue(questionId: string, value: AnswerValue, extraQues
 }
 
 
-export function validateSectionAnswers(sectionId: string, input: RawAnswers, extraQuestions: QuestionnaireQuestion[] = []): Record<string, string> {
+export function validateSectionAnswers(sectionId: string, input: RawAnswers, extraQuestions: QuestionnaireQuestion[] = [], overrides?: QuestionOverrides | null): Record<string, string> {
   const answers = normalizeMenopauseAnswers(input);
   const errors: Record<string, string> = {};
-  for (const question of [...allQuestions, ...extraQuestions].filter((item) => item.sectionId === sectionId)) {
+  for (const question of applyQuestionOverrides([...allQuestions, ...extraQuestions], overrides).filter((item) => item.sectionId === sectionId)) {
     if (!isQuestionVisible(question, answers)) continue;
     const value = answers[question.id];
     if (question.required && isEmpty(value)) {
@@ -99,7 +101,7 @@ export function validateSectionAnswers(sectionId: string, input: RawAnswers, ext
   return errors;
 }
 
-export function validateQuestionnaireAnswers(input: RawAnswers, extraQuestions: QuestionnaireQuestion[] = []): {
+export function validateQuestionnaireAnswers(input: RawAnswers, extraQuestions: QuestionnaireQuestion[] = [], overrides?: QuestionOverrides | null): {
   success: boolean;
   answers: RawAnswers;
   errors: Record<string, string>;
@@ -107,7 +109,7 @@ export function validateQuestionnaireAnswers(input: RawAnswers, extraQuestions: 
   const answers = normalizeMenopauseAnswers(input);
   const errors: Record<string, string> = {};
 
-  for (const question of [...allQuestions, ...extraQuestions]) {
+  for (const question of applyQuestionOverrides([...allQuestions, ...extraQuestions], overrides)) {
     if (!isQuestionVisible(question, answers)) continue;
     const value = answers[question.id];
     if (question.required && isEmpty(value)) {
@@ -123,10 +125,10 @@ export function validateQuestionnaireAnswers(input: RawAnswers, extraQuestions: 
   return { success: Object.keys(errors).length === 0, answers, errors };
 }
 
-export function buildStoredAnswers(rawAnswers: RawAnswers, extraQuestions: QuestionnaireQuestion[] = []): StoredAnswers {
+export function buildStoredAnswers(rawAnswers: RawAnswers, extraQuestions: QuestionnaireQuestion[] = [], overrides?: QuestionOverrides | null): StoredAnswers {
   const normalized = normalizeMenopauseAnswers(rawAnswers);
   return Object.fromEntries(
-    [...allQuestions, ...extraQuestions]
+    applyQuestionOverrides([...allQuestions, ...extraQuestions], overrides)
       .filter((question) => isQuestionVisible(question, normalized))
       .filter((question) => normalized[question.id] !== undefined && normalized[question.id] !== "")
       .map((question) => {

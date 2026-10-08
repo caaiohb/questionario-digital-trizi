@@ -1,5 +1,8 @@
 import { QUESTIONNAIRE_VERSION, yesNo } from "@/config/questionnaireConfig";
-import type { QuestionnaireQuestion, QuestionnaireSection } from "@/types/questionnaire";
+import { getVisibleSections, isQuestionVisible } from "@/config/questionnaireConfig";
+import { applyQuestionOverrides } from "@/lib/question-overrides";
+import type { QuestionOverrides } from "@/lib/question-overrides";
+import type { QuestionnaireQuestion, QuestionnaireSection, RawAnswers } from "@/types/questionnaire";
 
 export type CustomQuestionGender = "todos" | "feminino" | "masculino";
 
@@ -30,11 +33,19 @@ export function toQuestionnaireQuestion(row: PublicCustomQuestion): Questionnair
   };
 }
 
-/** Junta as perguntas personalizadas ativas de uma seção às perguntas fixas dela, na ordem certa. */
-export function mergeCustomQuestions(section: QuestionnaireSection, customQuestions: QuestionnaireQuestion[]): QuestionnaireQuestion[] {
+/**
+ * Junta as perguntas personalizadas ativas de uma seção às perguntas fixas dela.
+ * Com `overrides`, aplica também as perguntas desativadas/removidas e a ordem escolhida no painel.
+ */
+export function mergeCustomQuestions(section: QuestionnaireSection, customQuestions: QuestionnaireQuestion[], overrides?: QuestionOverrides | null): QuestionnaireQuestion[] {
   const extra = customQuestions.filter((question) => question.sectionId === section.id);
-  if (!extra.length) return section.questions;
-  return [...section.questions, ...extra];
+  const base = extra.length ? [...section.questions, ...extra] : section.questions;
+  return overrides ? applyQuestionOverrides(base, overrides) : base;
+}
+
+/** Seções visíveis para as respostas atuais, sem as que ficaram sem nenhuma pergunta a exibir. */
+export function getEffectiveSections(answers: RawAnswers, customQuestions: QuestionnaireQuestion[], overrides?: QuestionOverrides | null): QuestionnaireSection[] {
+  return getVisibleSections(answers).filter((section) => mergeCustomQuestions(section, customQuestions, overrides).some((question) => isQuestionVisible(question, answers)));
 }
 
 /**
