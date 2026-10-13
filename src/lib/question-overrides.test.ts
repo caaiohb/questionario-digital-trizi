@@ -6,7 +6,7 @@ import { buildStoredAnswers, validateQuestionnaireAnswers } from "@/lib/validati
 import type { QuestionOverrides } from "@/lib/question-overrides";
 import type { RawAnswers } from "@/types/questionnaire";
 
-const emotional = questionnaireSections.find((section) => section.id === "emotional_health")!;
+const emotional = questionnaireSections.find((section) => section.id === "emocional")!;
 
 function fullAnswers(overrides: RawAnswers = {}): RawAnswers {
   const base: RawAnswers = { identification_full_name: "Maria Teste", identification_age: 40, identification_current_weight: 80, identification_desired_weight: 65, identification_height: 1.65, identification_cpf: "529.982.247-25", identification_sex: "masculino" };
@@ -20,14 +20,14 @@ describe("question overrides", () => {
 
   it("desativada e removida somem; essenciais nunca somem", () => {
     const overrides: QuestionOverrides = {
-      emotional_sadness: { active: false, removed: false, sortOrder: null },
-      emotional_panic: { active: true, removed: true, sortOrder: null },
+      come_por_emocao: { active: false, removed: false, sortOrder: null },
+      acompanhamento_psicologico: { active: true, removed: true, sortOrder: null },
       emotional_death_thoughts: { active: false, removed: true, sortOrder: null },
       identification_cpf: { active: false, removed: true, sortOrder: null },
     };
     const ids = applyQuestionOverrides(emotional.questions, overrides).map((question) => question.id);
-    expect(ids).not.toContain("emotional_sadness");
-    expect(ids).not.toContain("emotional_panic");
+    expect(ids).not.toContain("come_por_emocao");
+    expect(ids).not.toContain("acompanhamento_psicologico");
     expect(ids).toContain("emotional_death_thoughts");
     expect(isQuestionEnabled("identification_cpf", overrides)).toBe(true);
   });
@@ -42,26 +42,26 @@ describe("question overrides", () => {
   it("validação ignora pergunta obrigatória desativada", () => {
     const answers = fullAnswers();
     const withoutOverride = validateQuestionnaireAnswers(answers);
-    expect(withoutOverride.errors.emotional_sadness).toBeDefined();
-    const overrides: QuestionOverrides = { emotional_sadness: { active: false, removed: false, sortOrder: null } };
+    expect(withoutOverride.errors.come_por_emocao).toBeDefined();
+    const overrides: QuestionOverrides = { come_por_emocao: { active: false, removed: false, sortOrder: null } };
     const withOverride = validateQuestionnaireAnswers(answers, [], overrides);
-    expect(withOverride.errors.emotional_sadness).toBeUndefined();
+    expect(withOverride.errors.come_por_emocao).toBeUndefined();
   });
 
   it("não guarda resposta de pergunta desativada", () => {
-    const overrides: QuestionOverrides = { emotional_sadness: { active: false, removed: false, sortOrder: null } };
-    const stored = buildStoredAnswers(fullAnswers({ emotional_sadness: "sim", emotional_anxiety: "nao" }), [], overrides);
-    expect(stored.emotional_sadness).toBeUndefined();
-    expect(stored.emotional_anxiety).toBeDefined();
+    const overrides: QuestionOverrides = { come_por_emocao: { active: false, removed: false, sortOrder: null } };
+    const stored = buildStoredAnswers(fullAnswers({ come_por_emocao: "nunca", acompanhamento_psicologico: "nunca_fiz" }), [], overrides);
+    expect(stored.come_por_emocao).toBeUndefined();
+    expect(stored.acompanhamento_psicologico).toBeDefined();
   });
 
   it("seção sem nenhuma pergunta visível some do fluxo", () => {
     const overrides: QuestionOverrides = Object.fromEntries(emotional.questions.filter((question) => question.id !== "emotional_death_thoughts").map((question) => [question.id, { active: false, removed: true, sortOrder: null }]));
-    // death_thoughts é essencial, então a seção continua; remover a seção de atenção mostra o caso vazio
-    const attention = questionnaireSections.find((section) => section.id === "attention_memory")!;
-    const attentionOverrides: QuestionOverrides = Object.fromEntries(attention.questions.map((question) => [question.id, { active: false, removed: true, sortOrder: null }]));
-    const ids = getEffectiveSections(fullAnswers(), [], { ...overrides, ...attentionOverrides }).map((section) => section.id);
-    expect(ids).toContain("emotional_health");
-    expect(ids).not.toContain("attention_memory");
+    // emotional_death_thoughts é essencial, então a seção emocional continua; remover a última etapa mostra o caso vazio
+    const words = questionnaireSections.find((section) => section.id === "com_suas_palavras")!;
+    const wordsOverrides: QuestionOverrides = Object.fromEntries(words.questions.map((question) => [question.id, { active: false, removed: true, sortOrder: null }]));
+    const ids = getEffectiveSections(fullAnswers(), [], { ...overrides, ...wordsOverrides }).map((section) => section.id);
+    expect(ids).toContain("emocional");
+    expect(ids).not.toContain("com_suas_palavras");
   });
 });

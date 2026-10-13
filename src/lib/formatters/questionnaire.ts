@@ -2,6 +2,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import { answerLabel, questionnaireSections, questionsById } from "@/config/questionnaireConfig";
 import { getCustomAnswersForSection } from "@/lib/custom-questions";
+import { getLegacyAnswerGroups, legacyAnswerText } from "@/lib/legacy-answers";
 import type { StoredAnswers } from "@/types/questionnaire";
 
 export interface SubmissionForFormatting {
@@ -49,6 +50,10 @@ export function formatCompleteQuestionnaire(submission: SubmissionForFormatting)
       const question = questionsById.get(stored.questionId);
       lines.push(`${stored.question}: ${question ? answerLabel(question, stored.answer) : String(stored.answer)}`);
     }
+  }
+  for (const group of getLegacyAnswerGroups(submission.answers)) {
+    lines.push(heading(`${group.section} (questionário anterior)`));
+    for (const stored of group.items) lines.push(`${stored.question}: ${legacyAnswerText(stored)}`);
   }
   if (submission.priority_alert) lines.push("\nALERTA INTERNO: resposta sinalizada para atenção prioritária.");
   lines.push("\nDocumento preenchido diretamente pela paciente.");

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Edit3, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
-import { answerLabel, isQuestionVisible, questionsById, QUESTIONNAIRE_VERSION } from "@/config/questionnaireConfig";
+import { answerLabel, isQuestionVisible, questionsById, QUESTIONNAIRE_VERSION, sanitizeAnswers } from "@/config/questionnaireConfig";
 import { getEffectiveSections, mergeCustomQuestions } from "@/lib/custom-questions";
 import { useQuestionConfig } from "@/hooks/use-question-config";
 import { clearDraft, loadDraft, RESULT_KEY } from "@/lib/draft";
@@ -23,7 +23,7 @@ export function ReviewClient() {
   const [confirm, setConfirm] = useState(false);
   const [sending, setSending] = useState(false);
 
-  useEffect(() => { const timer = window.setTimeout(() => setDraft(loadDraft()), 0); return () => window.clearTimeout(timer); }, []);
+  useEffect(() => { const timer = window.setTimeout(() => { const loaded = loadDraft(); setDraft(loaded ? { ...loaded, answers: sanitizeAnswers(loaded.answers) } : null); }, 0); return () => window.clearTimeout(timer); }, []);
 
   async function submit() {
     if (!draft || !confirm || sending) return;

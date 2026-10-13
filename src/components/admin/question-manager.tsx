@@ -34,7 +34,7 @@ export interface ManagerSection {
 const genderLabel: Record<Gender, string> = { todos: "Todos", feminino: "Só mulheres", masculino: "Só homens" };
 const typeLabel: Record<string, string> = {
   yes_no: "Sim/Não", yes_no_na: "Sim/Não/N.A.", yes_no_prefer_not: "Sim/Não", radio: "Escolha única", text: "Texto curto", textarea: "Texto longo",
-  number: "Número", height: "Altura", cpf: "CPF",
+  number: "Número", height: "Altura", cpf: "CPF", multi: "Várias opções", scale: "Escala 0–10",
 };
 const selectClass = "h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-sm focus:border-[var(--trizi-primary)]";
 

@@ -1,3 +1,6 @@
+import { answerLabel, questionsById } from "@/config/questionnaireConfig";
+import { legacyAnswerText } from "@/lib/legacy-answers";
+
 const BLOCKED_KEY = /full_name|name|nome|cpf|email|phone|telefone|whatsapp|document|rg_|address|endereco/i;
 
 export const AI_INSTRUCTIONS_KEY = "ai_prompt_instructions";
@@ -17,7 +20,7 @@ Com base no que você já conhece do meu estilo de consulta e do que busco capta
 
 Baseie-se somente no que está respondido, sem inventar dados e sem diagnosticar.`;
 
-type StoredItem = { question?: string; answer?: unknown; section?: string };
+type StoredItem = { questionId?: string; question?: string; answer?: unknown; section?: string };
 
 function fmt(value: unknown): string {
   if (value === null || value === undefined) return "";
@@ -37,7 +40,8 @@ export function buildAiPrompt(row: unknown): string | null {
   lines.push(`Idade: ${fmt(r.patient_age)} | Peso atual: ${fmt(r.current_weight)} kg | Peso desejado: ${fmt(r.desired_weight)} kg | Altura: ${fmt(r.height)}`);
   let section = "";
   for (const [, item] of entries) {
-    const a = fmt(item?.answer).trim();
+    const known = item?.questionId ? questionsById.get(item.questionId) : undefined;
+    const a = (known ? answerLabel(known, item.answer) : item?.questionId ? legacyAnswerText({ questionId: item.questionId, answer: item.answer as never }) : fmt(item?.answer)).trim();
     if (!a) continue;
     if (item.section && item.section !== section) {
       section = item.section;

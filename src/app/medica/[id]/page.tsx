@@ -4,6 +4,7 @@ import { Archive } from "lucide-react";
 import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 import { requireDoctorArea } from "@/lib/auth";
+import { getLegacyAnswerGroups, legacyAnswerText } from "@/lib/legacy-answers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { answerLabel, questionnaireSections } from "@/config/questionnaireConfig";
 import { mergeCustomQuestions, toQuestionnaireQuestion } from "@/lib/custom-questions";
@@ -97,6 +98,20 @@ export default async function DoctorSubmissionPage({ params }: { params: Promise
           </Card>
         );
       })}
+
+      {!archived && getLegacyAnswerGroups(answers).map((group) => (
+        <Card key={group.section} className="overflow-hidden">
+          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4"><h2 className="font-semibold">{group.section}</h2><p className="mt-1 text-xs text-slate-500">Respondido na versão anterior do questionário.</p></div>
+          <dl className="divide-y divide-slate-100">
+            {group.items.map((stored) => (
+              <div key={stored.questionId} className="grid gap-1 px-5 py-4 md:grid-cols-[minmax(0,1fr)_minmax(200px,0.65fr)] md:gap-8">
+                <dt className="text-sm leading-relaxed text-slate-600">{stored.question}</dt>
+                <dd className="font-semibold text-slate-900">{legacyAnswerText(stored)}</dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+      ))}
     </div>
   );
 }

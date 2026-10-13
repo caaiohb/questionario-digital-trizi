@@ -2,8 +2,8 @@ import { z } from "zod";
 import {
   allQuestions,
   isQuestionVisible,
-  normalizeMenopauseAnswers,
   QUESTIONNAIRE_VERSION,
+  sanitizeAnswers,
   sectionsById,
 } from "@/config/questionnaireConfig";
 import { applyQuestionOverrides } from "@/lib/question-overrides";
@@ -15,6 +15,7 @@ const answerValueSchema = z.union([
   z.number().finite(),
   z.boolean(),
   z.null(),
+  z.array(z.string().max(200)).max(60),
   z.object({ value: z.number().finite(), unit: z.enum(["cm", "m"]) }),
 ]);
 
@@ -31,7 +32,7 @@ export const submissionPayloadSchema = z.object({
 export type SubmissionPayload = z.infer<typeof submissionPayloadSchema>;
 
 function isEmpty(value: AnswerValue | undefined): boolean {
-  return value === undefined || value === null || value === "";
+  return value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
 }
 
 function isValidCpf(rawValue: string): boolean {
@@ -68,10 +69,14 @@ function validateQuestionValue(questionId: string, value: AnswerValue, extraQues
     if (typeof value !== "number" || value < 1 || value > 2.5) return "Informe uma altura válida entre 1,00 m e 2,50 m.";
   }
 
-  if (["yes_no", "yes_no_na", "yes_no_prefer_not", "radio"].includes(question.type)) {
+  if (["yes_no", "yes_no_na", "yes_no_prefer_not", "radio", "scale"].includes(question.type)) {
     if (typeof value !== "string" || !question.options?.some((option) => option.value === value)) {
       return "Selecione uma opção válida.";
     }
+  }
+
+  if (question.type === "multi") {
+    if (!Array.isArray(value) || value.length === 0 || !value.every((item) => typeof item === "string" && question.options?.some((option) => option.value === item))) return "Selecione opções válidas.";
   }
 
   if (["text", "textarea"].includes(question.type)) {
@@ -84,7 +89,7 @@ function validateQuestionValue(questionId: string, value: AnswerValue, extraQues
 
 
 export function validateSectionAnswers(sectionId: string, input: RawAnswers, extraQuestions: QuestionnaireQuestion[] = [], overrides?: QuestionOverrides | null): Record<string, string> {
-  const answers = normalizeMenopauseAnswers(input);
+  const answers = sanitizeAnswers(input);
   const errors: Record<string, string> = {};
   for (const question of applyQuestionOverrides([...allQuestions, ...extraQuestions], overrides).filter((item) => item.sectionId === sectionId)) {
     if (!isQuestionVisible(question, answers)) continue;
@@ -106,7 +111,7 @@ export function validateQuestionnaireAnswers(input: RawAnswers, extraQuestions: 
   answers: RawAnswers;
   errors: Record<string, string>;
 } {
-  const answers = normalizeMenopauseAnswers(input);
+  const answers = sanitizeAnswers(input);
   const errors: Record<string, string> = {};
 
   for (const question of applyQuestionOverrides([...allQuestions, ...extraQuestions], overrides)) {
@@ -126,11 +131,11 @@ export function validateQuestionnaireAnswers(input: RawAnswers, extraQuestions: 
 }
 
 export function buildStoredAnswers(rawAnswers: RawAnswers, extraQuestions: QuestionnaireQuestion[] = [], overrides?: QuestionOverrides | null): StoredAnswers {
-  const normalized = normalizeMenopauseAnswers(rawAnswers);
+  const normalized = sanitizeAnswers(rawAnswers);
   return Object.fromEntries(
     applyQuestionOverrides([...allQuestions, ...extraQuestions], overrides)
       .filter((question) => isQuestionVisible(question, normalized))
-      .filter((question) => normalized[question.id] !== undefined && normalized[question.id] !== "")
+      .filter((question) => !isEmpty(normalized[question.id]))
       .map((question) => {
         const section = sectionsById.get(question.sectionId);
         return [

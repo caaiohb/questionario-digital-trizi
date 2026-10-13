@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { buildStoredAnswers, submissionPayloadSchema, validateQuestionnaireAnswers } from "@/lib/validation/questionnaire";
 import { assertSameOrigin, getRequestIp, hmac, normalizeSearchText } from "@/lib/utils";
 import { toQuestionnaireQuestion } from "@/lib/custom-questions";
+import { computePriorityAlert } from "@/config/questionnaireConfig";
 import { loadQuestionOverrides } from "@/lib/question-overrides-server";
 import type { PublicCustomQuestion } from "@/lib/custom-questions";
 
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
     const currentWeight = Number(answers.identification_current_weight);
     const desiredWeight = Number(answers.identification_desired_weight);
     const height = Number(answers.identification_height);
-    const priorityAlert = answers.emotional_death_thoughts === "sim";
+    const priorityAlert = computePriorityAlert(answers);
     const searchName = normalizeSearchText(patientName);
 
     const { data: duplicate } = await admin

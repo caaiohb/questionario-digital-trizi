@@ -1,5 +1,5 @@
 export type AnswerPrimitive = string | number | boolean | null;
-export type AnswerValue = AnswerPrimitive | { value: number; unit: "cm" | "m" };
+export type AnswerValue = AnswerPrimitive | string[] | { value: number; unit: "cm" | "m" };
 export type RawAnswers = Record<string, AnswerValue>;
 
 export type QuestionType =
@@ -10,6 +10,8 @@ export type QuestionType =
   | "yes_no_na"
   | "yes_no_prefer_not"
   | "radio"
+  | "multi"
+  | "scale"
   | "height"
   | "cpf";
 
@@ -19,11 +21,15 @@ export interface ConditionalRule {
   questionId: string;
   equals?: AnswerPrimitive;
   in?: AnswerPrimitive[];
+  /** Para perguntas de "marque várias": verdadeiro se a opção informada estiver marcada. */
+  includes?: string;
 }
 
 export interface QuestionOption {
   value: string;
   label: string;
+  /** Se informado, a opção só aparece para este sexo. */
+  sex?: "feminino" | "masculino";
 }
 
 export interface QuestionnaireQuestion {
@@ -43,6 +49,8 @@ export interface QuestionnaireQuestion {
   condition?: ConditionalRule;
   sensitive?: boolean;
   priorityTriggerValue?: AnswerPrimitive;
+  /** Aviso mostrado à paciente quando ela marca a resposta de gatilho. */
+  alertWhenYes?: string;
   summaryMode?: SummaryMode;
   quickFill?: string;
   order: number;
