@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertSameOrigin } from "@/lib/utils";
-import { getActiveStaffId } from "@/lib/ai-staff";
+import { getPromptEditorId } from "@/lib/ai-staff";
 import { AI_INSTRUCTIONS_KEY, DEFAULT_AI_INSTRUCTIONS } from "@/lib/ai-prompt";
 
 export const runtime = "nodejs";
@@ -19,7 +19,7 @@ async function readTemplate() {
 
 export async function GET() {
   try {
-    const staff = await getActiveStaffId();
+    const staff = await getPromptEditorId();
     if (!staff) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
     const saved = await readTemplate();
     return NextResponse.json({ template: saved ?? DEFAULT_AI_INSTRUCTIONS, isDefault: !saved, defaultTemplate: DEFAULT_AI_INSTRUCTIONS });
@@ -31,7 +31,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     assertSameOrigin(request);
-    const staff = await getActiveStaffId();
+    const staff = await getPromptEditorId();
     if (!staff) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Texto inválido (máx. 8000 caracteres)." }, { status: 400 });
