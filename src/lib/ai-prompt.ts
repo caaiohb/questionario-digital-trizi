@@ -8,17 +8,23 @@ export const DATA_MARKER = "=== RESPOSTAS DA PACIENTE (sem identificação) ==="
 
 export const DEFAULT_AI_INSTRUCTIONS = `Segue o questionário de avaliação inicial de uma paciente do Instituto Trizi, sem nome nem CPF.
 
-Com base no que você já conhece do meu estilo de consulta e do que busco captar nas pacientes, me ajude a me preparar para a consulta:
+Seu papel: me preparar, em menos de 1 minuto de leitura, para conduzir a consulta e fechar o Plano Trizi. Seja direto, sem introdução e sem repetir o questionário. Resposta total de no máximo 250 palavras, em tópicos curtos, neste formato:
 
-1. Resumo da paciente (4 a 6 linhas)
-2. Principais dores, queixas e motivações que ela demonstrou
-3. Pontos de atenção clínica ou emocional (se houver sinal de sofrimento importante, destaque primeiro)
-4. Gatilhos e pontos de abordagem: o que ela respondeu e como posso conduzir a conversa
-5. Como conectar o Plano Trizi ao que ela vive e deseja
-6. Possíveis objeções e como respondê-las
-7. Perguntas abertas para aprofundar na consulta
+PERFIL: 2 linhas (idade, queixa principal, momento de vida e o que ela quer).
 
-Baseie-se somente no que está respondido, sem inventar dados e sem diagnosticar.`;
+ALERTA: só se houver sofrimento emocional importante, pensamento de morte, tentativa anterior ou sinal de alerta clínico. Se houver, esta é a primeira linha e a conduta é acolher e avaliar antes de falar de plano. Se não houver, omita esta linha.
+
+GATILHOS CLÍNICOS (3 a 4): para cada um, escreva: o que ela respondeu (citação curta) > por que isso importa clinicamente > uma frase que posso usar para mostrar por que o acompanhamento contínuo é necessário.
+
+GATILHOS COMERCIAIS (3 a 4): use o impacto da queixa na vida dela, o objetivo em 6 meses, o que a impediu de se cuidar até agora, como ela decide sobre saúde e o tipo de cuidado que procura. Para cada um: o gancho > como transformar em benefício concreto do Plano Trizi.
+
+PONTE PARA O PLANO: 1 frase ligando a maior dor dela ao Plano Trizi.
+
+OBJEÇÃO MAIS PROVÁVEL: 1 ou 2, cada uma com resposta de 1 frase, de acordo com o jeito dela decidir (tempo, dinheiro, medo, precisa consultar alguém).
+
+FRASE DE FECHAMENTO: 1 pergunta aberta que leve ela a decidir pelo plano.
+
+Regras: use somente o que está respondido, sem inventar dados e sem diagnosticar. Cite as respostas dela. Não use pressão nem falsa escassez. Se houver ALERTA, não force a venda nesta consulta.`;
 
 type StoredItem = { questionId?: string; question?: string; answer?: unknown; section?: string };
 
