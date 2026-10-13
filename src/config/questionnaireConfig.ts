@@ -262,8 +262,6 @@ export const questionnaireSections: QuestionnaireSection[] = [
         o("ja_fiz", "Já fiz"),
         o("nunca_fiz", "Nunca fiz"),
       ] }),
-      // Pergunta de segurança mantida: aciona o alerta prioritário e a mensagem de apoio. Não pode ser desativada.
-      q("emocional", 4, { id: "emotional_death_thoughts", code: "mental_health_death_thoughts", text: "Pensou, por mais de uma vez, que seria melhor se estivesse morta?", type: "yes_no", options: yesNo, required: true, priorityTriggerValue: "sim", summaryMode: "always", sensitive: true }),
     ],
   },
   {

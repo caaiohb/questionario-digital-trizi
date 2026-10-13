@@ -1,7 +1,7 @@
 import { answerLabel, questionsById } from "@/config/questionnaireConfig";
 import { legacyAnswerText } from "@/lib/legacy-answers";
 
-const BLOCKED_KEY = /full_name|name|nome|cpf|email|phone|telefone|whatsapp|document|rg_|address|endereco/i;
+const BLOCKED_KEY = /full_name|name|nome|cpf|email|phone|telefone|whatsapp|document|rg_|address|endereco|death/i;
 
 export const AI_INSTRUCTIONS_KEY = "ai_prompt_instructions";
 export const DATA_MARKER = "=== RESPOSTAS DA PACIENTE (sem identificação) ===";
@@ -10,7 +10,7 @@ export const DEFAULT_AI_INSTRUCTIONS = `Segue o questionário de uma paciente do
 
 Prepare a Dra. Janifer para fechar o Plano Trizi 360º. Seja direto, sem introdução, em no máximo 150 palavras, neste formato:
 
-AVISOS: sofrimento emocional, pensamento de morte, tentativa anterior ou sinal de alerta clínico. Se não houver, escreva "nenhum". Se houver, acolher antes de falar de plano.
+AVISOS: sinal de alerta clínico marcado ou sofrimento emocional importante (estresse muito alto, por exemplo). Se não houver, escreva "nenhum". Se houver, acolher antes de falar de plano.
 
 GANCHOS CLÍNICOS (até 3): resposta dela > por que importa > frase para a doutora usar.
 

@@ -10,7 +10,7 @@ export type QuestionOverrides = Record<string, QuestionOverride>;
 
 /**
  * Perguntas essenciais: o sistema depende delas para funcionar (identificação do
- * paciente, ramificação por sexo e alerta de segurança emocional). Não podem ser
+ * paciente e ramificação por sexo). Não podem ser
  * desativadas nem removidas, apenas reordenadas.
  */
 export const LOCKED_QUESTION_IDS: ReadonlySet<string> = new Set([
@@ -21,7 +21,6 @@ export const LOCKED_QUESTION_IDS: ReadonlySet<string> = new Set([
   "identification_height",
   "identification_cpf",
   "identification_sex",
-  "emotional_death_thoughts",
 ]);
 
 export function isQuestionEnabled(questionId: string, overrides?: QuestionOverrides | null): boolean {

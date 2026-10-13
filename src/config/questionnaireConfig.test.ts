@@ -38,12 +38,11 @@ describe("questionnaireConfig", () => {
     expect(result.sono).toEqual([]);
     expect(result.decisao_saude).toBeUndefined();
   });
-  it("sinaliza alerta prioritário pela pergunta de segurança e pelos sinais de alerta", () => {
-    expect(computePriorityAlert({ identification_sex: "feminino", emotional_death_thoughts: "sim" })).toBe(true);
+  it("sinaliza alerta prioritário pelos sinais de alerta", () => {
     expect(computePriorityAlert({ identification_sex: "feminino", sinais_alerta_feminino: "sim" })).toBe(true);
     expect(computePriorityAlert({ identification_sex: "masculino", sinais_alerta_masculino: "sim" })).toBe(true);
     expect(computePriorityAlert({ identification_sex: "masculino", sinais_alerta_feminino: "sim" })).toBe(false);
-    expect(computePriorityAlert({ identification_sex: "feminino", sinais_alerta_feminino: "nao", emotional_death_thoughts: "nao" })).toBe(false);
+    expect(computePriorityAlert({ identification_sex: "feminino", sinais_alerta_feminino: "nao" })).toBe(false);
   });
   it("mostra os rótulos das opções marcadas", () => {
     expect(answerLabel(questionsById.get("queixa_areas")!, ["trabalho", "como_me_vejo"])).toBe("Trabalho, Como me vejo");

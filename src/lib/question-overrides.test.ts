@@ -22,13 +22,11 @@ describe("question overrides", () => {
     const overrides: QuestionOverrides = {
       come_por_emocao: { active: false, removed: false, sortOrder: null },
       acompanhamento_psicologico: { active: true, removed: true, sortOrder: null },
-      emotional_death_thoughts: { active: false, removed: true, sortOrder: null },
       identification_cpf: { active: false, removed: true, sortOrder: null },
     };
     const ids = applyQuestionOverrides(emotional.questions, overrides).map((question) => question.id);
     expect(ids).not.toContain("come_por_emocao");
     expect(ids).not.toContain("acompanhamento_psicologico");
-    expect(ids).toContain("emotional_death_thoughts");
     expect(isQuestionEnabled("identification_cpf", overrides)).toBe(true);
   });
 
@@ -56,12 +54,12 @@ describe("question overrides", () => {
   });
 
   it("seção sem nenhuma pergunta visível some do fluxo", () => {
-    const overrides: QuestionOverrides = Object.fromEntries(emotional.questions.filter((question) => question.id !== "emotional_death_thoughts").map((question) => [question.id, { active: false, removed: true, sortOrder: null }]));
-    // emotional_death_thoughts é essencial, então a seção emocional continua; remover a última etapa mostra o caso vazio
+    const overrides: QuestionOverrides = Object.fromEntries(emotional.questions.map((question) => [question.id, { active: false, removed: true, sortOrder: null }]));
+    // todas as perguntas da seção emocional foram removidas, então a seção some do fluxo
     const words = questionnaireSections.find((section) => section.id === "com_suas_palavras")!;
     const wordsOverrides: QuestionOverrides = Object.fromEntries(words.questions.map((question) => [question.id, { active: false, removed: true, sortOrder: null }]));
     const ids = getEffectiveSections(fullAnswers(), [], { ...overrides, ...wordsOverrides }).map((section) => section.id);
-    expect(ids).toContain("emocional");
+    expect(ids).not.toContain("emocional");
     expect(ids).not.toContain("com_suas_palavras");
   });
 });
