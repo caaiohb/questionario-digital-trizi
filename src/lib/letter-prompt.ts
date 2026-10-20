@@ -25,7 +25,7 @@ export interface LetterPlan {
 
 export const DEFAULT_LETTER_TEAM = "Dra. Janifer, com consultas e conversa mensal; Dra. Claudia, nutrição; Tadeu, avaliação física; Dra. Renata, terapia e sono";
 
-export const DEFAULT_LETTER_PLAN: LetterPlan = { contato: "", uf_crm: "", equipe: DEFAULT_LETTER_TEAM, opcoes: [] };
+export const DEFAULT_LETTER_PLAN: LetterPlan = { contato: "(11) 93020-2408", uf_crm: "", equipe: DEFAULT_LETTER_TEAM, opcoes: [] };
 
 export const LETTER_TEMPLATE = `Você é redator de comunicação médica premium do Instituto Trizi. Escreva uma carta pessoal da Dra. Janifer Sewruk Trizi que a paciente vai entregar ao marido ou a uma pessoa próxima. O objetivo é ajudar essa pessoa a entender o que a paciente está vivendo, enxergar o que ela pode melhorar com o Plano Trizi 360º e decidir junto com ela por apoiar o plano.
 

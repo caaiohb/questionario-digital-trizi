@@ -25,7 +25,7 @@ export function normalizeLetterPlan(raw: unknown): LetterPlan {
     .filter((option): option is PlanOption => option !== null)
     .sort((a, b) => Number(a.meses) - Number(b.meses));
   return {
-    contato: pick("contato"),
+    contato: pick("contato") || DEFAULT_LETTER_PLAN.contato,
     uf_crm: pick("uf_crm").toUpperCase(),
     equipe: pick("equipe") || DEFAULT_LETTER_PLAN.equipe,
     opcoes: options,
