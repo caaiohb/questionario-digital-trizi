@@ -52,7 +52,7 @@ export function LetterPrompt({ id, panel }: { id: string; panel: { defaults: Let
 
   return (
     <section className="rounded-xl border bg-white p-4 shadow-sm print:hidden">
-      <h3 className="flex items-center gap-2 font-semibold"><Mail className="h-4 w-4" /> Carta para o marido</h3>
+      <h3 className="flex items-center gap-2 font-semibold"><Mail className="h-4 w-4" /> Para quem divide os dias com ela</h3>
       <p className="text-xs text-neutral-500">O questionário da paciente vai junto no prompt, para o Claude achar os gatilhos e mostrar o que ela vai melhorar. Revise a carta com a paciente antes de entregar.</p>
 
       {options.length === 0 ? (
