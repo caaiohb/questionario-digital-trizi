@@ -1,5 +1,5 @@
 import { buildAiPrompt, DATA_MARKER } from "@/lib/ai-prompt";
-import type { LetterPlan, LetterValues } from "@/lib/letter-prompt";
+import type { LetterPlan, LetterValues, PlanOption } from "@/lib/letter-prompt";
 
 /** Só o primeiro nome, com a primeira letra maiúscula (ex.: "MARIA APARECIDA SILVA" vira "Maria"). */
 export function firstNameOnly(fullName: unknown): string {
@@ -26,7 +26,7 @@ export function questionnaireForLetter(row: Row): string {
   return lines.join("\n").trim();
 }
 
-/** Tudo o que a carta precisa, menos o nome do marido e o valor do plano (a médica informa na tela). */
+/** Tudo o que a carta precisa, menos o nome do marido e o plano escolhido (duração, valor e parcelas), que a médica escolhe na tela. */
 export function buildLetterDefaults(row: Row, plan: LetterPlan): LetterValues {
   const age = Number(row.patient_age);
   const sex = ((row.answers ?? {}) as Record<string, { answer?: unknown } | undefined>).identification_sex?.answer;
@@ -37,11 +37,16 @@ export function buildLetterDefaults(row: Row, plan: LetterPlan): LetterValues {
     nome_destinatario: "",
     vinculo: "marido",
     questionario: questionnaireForLetter(row),
-    duracao_meses: plan.duracao_meses,
+    duracao_meses: "",
     equipe: plan.equipe,
-    qtd_parcelas: plan.qtd_parcelas,
+    qtd_parcelas: "",
     valor_parcela: "",
     contato: plan.contato,
     uf_crm: plan.uf_crm,
   };
+}
+
+/** Dados para a tela da médica: valores fixos da carta e as opções de plano cadastradas. */
+export function buildLetterPanel(row: Row, plan: LetterPlan): { defaults: LetterValues; options: PlanOption[] } {
+  return { defaults: buildLetterDefaults(row, plan), options: plan.opcoes };
 }

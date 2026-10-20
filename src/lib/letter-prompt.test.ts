@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLetterDefaults, firstNameOnly, questionnaireForLetter } from "@/lib/letter-defaults";
+import { buildLetterDefaults, buildLetterPanel, firstNameOnly, questionnaireForLetter } from "@/lib/letter-defaults";
 import { normalizeLetterPlan } from "@/lib/letter-plan";
 import { DEFAULT_LETTER_PLAN, installmentValue, parseMoney, renderLetterPrompt, LETTER_TEMPLATE } from "@/lib/letter-prompt";
 
@@ -37,7 +37,7 @@ describe("carta para o marido", () => {
   });
 
   it("monta os valores a partir do prontuário e do plano cadastrado", () => {
-    const plan = normalizeLetterPlan({ duracao_meses: "12", qtd_parcelas: "10", contato: "(11) 99999-0000", uf_crm: "sp" });
+    const plan = normalizeLetterPlan({ contato: "(11) 99999-0000", uf_crm: "sp", opcoes: [{ meses: "12", valor: "12.000,00", max_parcelas: "10" }] });
     const values = buildLetterDefaults(row, plan);
     expect(values.nome_paciente).toBe("Ana");
     expect(values.idade).toBe("45");
@@ -46,11 +46,12 @@ describe("carta para o marido", () => {
     expect(values.uf_crm).toBe("SP");
     expect(values.equipe).toBe(DEFAULT_LETTER_PLAN.equipe);
     expect(values.nome_destinatario).toBe("");
+    expect(values.contato).toBe("(11) 99999-0000");
   });
 
   it("o prompt final não tem nome completo nem CPF e todos os campos são trocados", () => {
-    const plan = normalizeLetterPlan({ duracao_meses: "12", qtd_parcelas: "10", contato: "(11) 99999-0000", uf_crm: "SP" });
-    const prompt = renderLetterPrompt({ ...buildLetterDefaults(row, plan), nome_destinatario: "Carlos", valor_parcela: installmentValue("12.000,00", "10") ?? "" });
+    const plan = normalizeLetterPlan({ contato: "(11) 99999-0000", uf_crm: "SP", opcoes: [{ meses: "12", valor: "12.000,00", max_parcelas: "10" }] });
+    const prompt = renderLetterPrompt({ ...buildLetterDefaults(row, plan), nome_destinatario: "Carlos", duracao_meses: "12", qtd_parcelas: "10", valor_parcela: installmentValue("12.000,00", "10") ?? "" });
     expect(prompt).toContain("Nome: Ana");
     expect(prompt).not.toContain("Paula");
     expect(prompt).not.toContain("12345678900");
@@ -62,6 +63,21 @@ describe("carta para o marido", () => {
     expect(prompt).toContain("transformar a vida de Ana");
     expect(prompt).not.toContain("Querido Carlos");
     expect(prompt).not.toMatch(/\{\{/);
+  });
+
+  it("planos cadastrados: descarta opções inválidas e ordena pela duração", () => {
+    const plan = normalizeLetterPlan({
+      opcoes: [
+        { meses: "12", valor: "12.000,00", max_parcelas: "10" },
+        { meses: "6", valor: "7000", max_parcelas: "6" },
+        { meses: "", valor: "100", max_parcelas: "2" },
+        { meses: "3", valor: "abc", max_parcelas: "2" },
+        { meses: "4", valor: "100", max_parcelas: "0" },
+      ],
+    });
+    expect(plan.opcoes.map((option) => option.meses)).toEqual(["6", "12"]);
+    expect(normalizeLetterPlan(null).opcoes).toEqual([]);
+    expect(buildLetterPanel(row, plan).options).toHaveLength(2);
   });
 
   it("campo em branco vira (vazio) e o modelo usa os 12 campos", () => {

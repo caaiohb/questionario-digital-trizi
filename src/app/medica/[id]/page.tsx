@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { AiSummary } from "@/components/panel/ai-summary";
 import { LetterPrompt } from "@/components/doctor/letter-prompt";
-import { buildLetterDefaults } from "@/lib/letter-defaults";
+import { buildLetterPanel } from "@/lib/letter-defaults";
 import { readLetterPlan } from "@/lib/letter-plan";
 import { AttendedButton } from "@/components/doctor/doctor-actions";
 
@@ -78,7 +78,7 @@ export default async function DoctorSubmissionPage({ params }: { params: Promise
 
       <AiSummary id={id} archived={archived} />
 
-      <LetterPrompt id={id} defaults={buildLetterDefaults(submission, await readLetterPlan())} />
+      <LetterPrompt id={id} panel={buildLetterPanel(submission, await readLetterPlan())} />
 
       {archived && (
         <Card className="border-2 border-amber-200 bg-amber-50 p-5">

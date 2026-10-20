@@ -9,17 +9,23 @@ export type LetterKey =
 export type LetterValues = Record<LetterKey, string>;
 
 /** Dados fixos do plano, cadastrados uma vez pelo administrador em Configurações. */
+/** Uma opção de plano: duração, valor total e o máximo de parcelas sem juros. */
+export interface PlanOption {
+  meses: string;
+  valor: string;
+  max_parcelas: string;
+}
+
 export interface LetterPlan {
-  duracao_meses: string;
-  qtd_parcelas: string;
   contato: string;
   uf_crm: string;
   equipe: string;
+  opcoes: PlanOption[];
 }
 
 export const DEFAULT_LETTER_TEAM = "Dra. Janifer, com consultas e conversa mensal; Dra. Claudia, nutrição; Tadeu, avaliação física; Dra. Renata, terapia e sono";
 
-export const DEFAULT_LETTER_PLAN: LetterPlan = { duracao_meses: "", qtd_parcelas: "", contato: "", uf_crm: "", equipe: DEFAULT_LETTER_TEAM };
+export const DEFAULT_LETTER_PLAN: LetterPlan = { contato: "", uf_crm: "", equipe: DEFAULT_LETTER_TEAM, opcoes: [] };
 
 export const LETTER_TEMPLATE = `Você é redator de comunicação médica premium do Instituto Trizi. Escreva uma carta pessoal da Dra. Janifer Sewruk Trizi que a paciente vai entregar ao marido ou a uma pessoa próxima. O objetivo é ajudar essa pessoa a entender o que a paciente está vivendo, enxergar o que ela pode melhorar com o Plano Trizi 360º e decidir junto com ela por apoiar o plano.
 
