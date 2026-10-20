@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildLetterDefaults, firstNameOnly } from "@/lib/letter-defaults";
-import { renderLetterPrompt, LETTER_TEMPLATE } from "@/lib/letter-prompt";
+import { installmentValue, parseMoney, renderLetterPrompt, LETTER_TEMPLATE } from "@/lib/letter-prompt";
 
 describe("carta para pessoa próxima", () => {
   it("usa só o primeiro nome", () => {
@@ -41,5 +41,17 @@ describe("carta para pessoa próxima", () => {
     expect(renderLetterPrompt({})).toContain("Contato para agendar: (vazio)");
     const keys = new Set(Array.from(LETTER_TEMPLATE.matchAll(/\{\{(\w+)\}\}/g)).map((m) => m[1]));
     expect(keys.size).toBe(18);
+  });
+
+  it("calcula a parcela a partir do valor do plano", () => {
+    expect(installmentValue("12.000,00", "10")).toBe("R$ 1.200,00");
+    expect(installmentValue("R$ 9900", "12")).toBe("R$ 825,00");
+    expect(installmentValue("12000", "3")).toBe("R$ 4.000,00");
+    expect(installmentValue("10000", "3")).toBe("R$ 3.333,33");
+    expect(installmentValue("", "10")).toBeNull();
+    expect(installmentValue("12000", "0")).toBeNull();
+    expect(installmentValue("12000", "abc")).toBeNull();
+    expect(parseMoney("1.234")).toBe(1234);
+    expect(parseMoney("1.234,56")).toBe(1234.56);
   });
 });

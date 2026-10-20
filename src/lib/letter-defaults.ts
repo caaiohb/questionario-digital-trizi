@@ -39,7 +39,7 @@ export function buildLetterDefaults(row: Row): LetterValues {
     idade: Number.isFinite(age) && age > 0 ? String(age) : "",
     sexo: label("identification_sex").toLowerCase(),
     nome_destinatario: "",
-    vinculo: "",
+    vinculo: "marido",
     tempo_sintomas: label("queixa_tempo"),
     sintomas: symptoms,
     frases_paciente: phrases,

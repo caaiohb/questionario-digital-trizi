@@ -106,6 +106,25 @@ Responda somente com a carta, sem comentários antes ou depois, em HTML simples:
 - A frase sobre "o que ela sente é real" em <p class="destaque">.
 - A assinatura em <div class="assinatura">.`;
 
+/** Lê um valor em reais digitado do jeito brasileiro ("12.000,00", "R$ 12000", "990"). Devolve null se não for um número válido. */
+export function parseMoney(input: string): number | null {
+  let text = input.replace(/R\$|\s/g, "");
+  if (!text) return null;
+  if (text.includes(",")) text = text.replace(/\./g, "").replace(",", ".");
+  else if (/^\d{1,3}(\.\d{3})+$/.test(text)) text = text.replace(/\./g, "");
+  const value = Number(text);
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+/** Valor de cada parcela em reais (ex.: "R$ 1.200,00"), a partir do valor do plano e da quantidade de parcelas. Null se algum dado for inválido. */
+export function installmentValue(total: string, installments: string): string | null {
+  const amount = parseMoney(total);
+  const count = Number.parseInt(installments.trim(), 10);
+  if (amount === null || !Number.isInteger(count) || count < 1 || count > 60) return null;
+  const each = Math.round((amount / count) * 100) / 100;
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(each).replace(/\u00a0/g, " ");
+}
+
 /** Troca cada {{campo}} pelo valor preenchido; campo em branco vira "(vazio)". */
 export function renderLetterPrompt(values: Partial<LetterValues>): string {
   return LETTER_TEMPLATE.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
