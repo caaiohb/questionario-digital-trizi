@@ -7,7 +7,7 @@ import type { LetterPlan } from "@/lib/letter-prompt";
 
 const FIELDS: { key: keyof LetterPlan; label: string; placeholder?: string; area?: boolean }[] = [
   { key: "duracao_meses", label: "Duração do plano (meses)", placeholder: "Ex.: 12" },
-  { key: "qtd_parcelas", label: "Quantidade de parcelas (sem juros)", placeholder: "Ex.: 10" },
+  { key: "qtd_parcelas", label: "Quantidade de parcelas padrão (a doutora pode trocar)", placeholder: "Ex.: 10" },
   { key: "contato", label: "Contato para agendar", placeholder: "Telefone ou WhatsApp" },
   { key: "uf_crm", label: "UF do CRM", placeholder: "Ex.: SP" },
   { key: "equipe", label: "Profissionais incluídos no plano", area: true },
@@ -35,7 +35,7 @@ export function LetterPlanEditor({ initial }: { initial: LetterPlan }) {
     <section id="carta-plano" className="mt-8 rounded-xl border bg-white p-5 shadow-sm">
       <h2 className="flex items-center gap-2 text-xl font-semibold"><Mail className="h-5 w-5" /> Carta para o marido: dados do plano</h2>
       <p className="mt-1 text-sm text-slate-600">
-        Estes dados entram sozinhos na carta. A Dra. Janifer informa apenas o nome do marido e o valor do plano. A parcela é calculada com o valor que ela digitar e a quantidade de parcelas daqui.
+        Estes dados entram sozinhos na carta. A Dra. Janifer informa o nome do marido e o valor do plano, e pode trocar a quantidade de parcelas, que já vem preenchida com o padrão daqui. A parcela é calculada na hora.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {FIELDS.map((field) => (

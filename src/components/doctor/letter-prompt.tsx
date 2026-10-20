@@ -8,17 +8,16 @@ import { installmentValue, renderLetterPrompt, type LetterValues } from "@/lib/l
 export function LetterPrompt({ id, defaults }: { id: string; defaults: LetterValues }) {
   const [husband, setHusband] = useState("");
   const [total, setTotal] = useState("");
+  const [parcelas, setParcelas] = useState(defaults.qtd_parcelas);
   const [prompt, setPrompt] = useState<string | null>(null);
 
-  const planReady = Boolean(defaults.qtd_parcelas.trim());
-  const parcela = installmentValue(total, defaults.qtd_parcelas);
+  const parcela = installmentValue(total, parcelas);
   const input = "w-full rounded-md border bg-white p-2 text-sm";
 
   async function generate() {
     if (!husband.trim()) { toast.error("Informe o nome do marido."); return; }
-    if (!planReady) { toast.error("Falta cadastrar a quantidade de parcelas. Peça ao administrador em Configurações."); return; }
-    if (!parcela) { toast.error("Informe o valor do plano (ex.: 12.000,00)."); return; }
-    const text = renderLetterPrompt({ ...defaults, nome_destinatario: husband, valor_parcela: parcela });
+    if (!parcela) { toast.error("Informe o valor do plano (ex.: 12.000,00) e a quantidade de parcelas (ex.: 10)."); return; }
+    const text = renderLetterPrompt({ ...defaults, nome_destinatario: husband, qtd_parcelas: parcelas.trim(), valor_parcela: parcela });
     setPrompt(text);
     try {
       await navigator.clipboard.writeText(text);
@@ -44,7 +43,7 @@ export function LetterPrompt({ id, defaults }: { id: string; defaults: LetterVal
       <h3 className="flex items-center gap-2 font-semibold"><Mail className="h-4 w-4" /> Carta para o marido</h3>
       <p className="text-xs text-neutral-500">O questionário da paciente vai junto no prompt, para o Claude achar os gatilhos e mostrar o que ela vai melhorar. Revise a carta com a paciente antes de entregar.</p>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <label className="block text-sm">
           <span className="mb-1 block text-xs font-medium text-neutral-600">Nome do marido</span>
           <input value={husband} onChange={(event) => { setHusband(event.target.value); setPrompt(null); }} placeholder="Ex.: Carlos" className={input} />
@@ -53,14 +52,16 @@ export function LetterPrompt({ id, defaults }: { id: string; defaults: LetterVal
           <span className="mb-1 block text-xs font-medium text-neutral-600">Valor do plano (R$)</span>
           <input value={total} onChange={(event) => { setTotal(event.target.value); setPrompt(null); }} inputMode="decimal" placeholder="Ex.: 12.000,00" className={input} />
         </label>
+        <label className="block text-sm">
+          <span className="mb-1 block text-xs font-medium text-neutral-600">Quantidade de parcelas</span>
+          <input value={parcelas} onChange={(event) => { setParcelas(event.target.value); setPrompt(null); }} inputMode="numeric" placeholder="Ex.: 10" className={input} />
+        </label>
       </div>
 
       <p className="mt-2 text-xs text-neutral-600">
-        {!planReady
-          ? "Falta cadastrar a quantidade de parcelas do plano em Configurações (administrador)."
-          : parcela
-            ? <>Na carta: <strong>{defaults.qtd_parcelas}x de {parcela}</strong> sem juros no cartão, ou via PIX. O valor total não aparece.</>
-            : "A carta mostra só a parcela. O valor total não aparece."}
+        {parcela
+          ? <>Na carta: <strong>{parcelas.trim()}x de {parcela}</strong> sem juros no cartão, ou via PIX. O valor total não aparece.</>
+          : "A carta mostra só a parcela, calculada com o valor do plano e a quantidade de parcelas. O valor total não aparece."}
       </p>
 
       <div className="mt-3 flex flex-wrap gap-2">
