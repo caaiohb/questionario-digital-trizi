@@ -9,6 +9,7 @@ export function LetterPrompt({ id, defaults }: { id: string; defaults: LetterVal
   const [husband, setHusband] = useState("");
   const [total, setTotal] = useState("");
   const [parcelas, setParcelas] = useState(defaults.qtd_parcelas);
+  const [meses, setMeses] = useState(defaults.duracao_meses);
   const [prompt, setPrompt] = useState<string | null>(null);
 
   const parcela = installmentValue(total, parcelas);
@@ -17,7 +18,8 @@ export function LetterPrompt({ id, defaults }: { id: string; defaults: LetterVal
   async function generate() {
     if (!husband.trim()) { toast.error("Informe o nome do marido."); return; }
     if (!parcela) { toast.error("Informe o valor do plano (ex.: 12.000,00) e a quantidade de parcelas (ex.: 10)."); return; }
-    const text = renderLetterPrompt({ ...defaults, nome_destinatario: husband, qtd_parcelas: parcelas.trim(), valor_parcela: parcela });
+    if (!/^\d{1,2}$/.test(meses.trim())) { toast.error("Informe a duração do plano em meses (ex.: 12)."); return; }
+    const text = renderLetterPrompt({ ...defaults, nome_destinatario: husband, duracao_meses: meses.trim(), qtd_parcelas: parcelas.trim(), valor_parcela: parcela });
     setPrompt(text);
     try {
       await navigator.clipboard.writeText(text);
@@ -43,7 +45,7 @@ export function LetterPrompt({ id, defaults }: { id: string; defaults: LetterVal
       <h3 className="flex items-center gap-2 font-semibold"><Mail className="h-4 w-4" /> Carta para o marido</h3>
       <p className="text-xs text-neutral-500">O questionário da paciente vai junto no prompt, para o Claude achar os gatilhos e mostrar o que ela vai melhorar. Revise a carta com a paciente antes de entregar.</p>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block text-sm">
           <span className="mb-1 block text-xs font-medium text-neutral-600">Nome do marido</span>
           <input value={husband} onChange={(event) => { setHusband(event.target.value); setPrompt(null); }} placeholder="Ex.: Carlos" className={input} />
@@ -55,6 +57,10 @@ export function LetterPrompt({ id, defaults }: { id: string; defaults: LetterVal
         <label className="block text-sm">
           <span className="mb-1 block text-xs font-medium text-neutral-600">Quantidade de parcelas</span>
           <input value={parcelas} onChange={(event) => { setParcelas(event.target.value); setPrompt(null); }} inputMode="numeric" placeholder="Ex.: 10" className={input} />
+        </label>
+        <label className="block text-sm">
+          <span className="mb-1 block text-xs font-medium text-neutral-600">Duração do plano (meses)</span>
+          <input value={meses} onChange={(event) => { setMeses(event.target.value); setPrompt(null); }} inputMode="numeric" placeholder="Ex.: 12" className={input} />
         </label>
       </div>
 

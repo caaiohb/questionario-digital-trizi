@@ -57,6 +57,10 @@ describe("carta para o marido", () => {
     expect(prompt).toContain("10 parcelas de R$ 1.200,00");
     expect(prompt).not.toContain("12.000");
     expect(prompt).toContain("Minha mente não para");
+    expect(prompt).toContain("começando com “Caro Carlos,”");
+    expect(prompt).toContain("Duração: 12 meses");
+    expect(prompt).toContain("transformar a vida de Ana");
+    expect(prompt).not.toContain("Querido Carlos");
     expect(prompt).not.toMatch(/\{\{/);
   });
 

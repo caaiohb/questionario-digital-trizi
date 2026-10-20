@@ -67,7 +67,7 @@ Depois:
 - Convide o destinatário a apoiar a decisão e a fazer parte do cuidado no dia a dia.
 
 ══ ESTRUTURA ══
-1. Abertura acolhedora, dirigida ao destinatário pelo papel que ele tem na vida dela.
+1. Abertura acolhedora, começando com “Caro {{nome_destinatario}},” (use “Cara” se o destinatário for mulher e nunca use “Querido”), dirigida a ele pelo papel que tem na vida dela.
 2. O que ela está vivendo, com as palavras dela entre aspas, e o peso disso na rotina e na relação.
 3. Por que as tentativas anteriores não resolveram e o que muda num cuidado integrado.
 4. Como o plano funciona: a equipe, a conversa mensal com a Dra. Janifer e 3 etapas ao longo da duração.
@@ -77,11 +77,9 @@ Depois:
    Mencione também o cronograma mês a mês, sem inventar o que acontece em cada mês, e que as condutas são ajustadas conforme a evolução da paciente.
 5. O que buscamos melhorar para ela e, por consequência, para os dois.
 6. Convite para apoiar e decidir junto.
-7. Investimento e próximo passo:
-   - Informe apenas a parcela: "{{qtd_parcelas}} parcelas de {{valor_parcela}} sem juros no cartão, ou via PIX".
-   - Nunca mencione o valor total.
-   - Feche com o contato para agendar.
-8. "Com carinho e respeito," e a assinatura.
+7. Investimento: informe apenas a parcela, "{{qtd_parcelas}} parcelas de {{valor_parcela}} sem juros no cartão, ou via PIX". Nunca mencione o valor total.
+8. CTA final, logo depois do investimento. Um parágrafo curto, caloroso e inspirador, que encante o destinatário: o nosso objetivo é transformar a vida de {{nome_paciente}} para que ela volte a ter uma vida maravilhosa ao lado da família. Convide-o a dar esse passo junto com ela e feche com o contato para agendar. Sem pressão, sem urgência e sem prometer resultado.
+9. "Com carinho e respeito," e a assinatura.
 
 ══ TOM ══
 - Carta pessoal de uma médica de referência, nunca um anúncio. Primeira pessoa ("eu", "comigo").
