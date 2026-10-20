@@ -140,10 +140,11 @@ export function installmentValue(total: string, installments: string): string | 
 }
 
 /** Troca cada {{campo}} pelo valor preenchido; campo em branco vira "(vazio)". */
-export function renderLetterPrompt(values: Partial<LetterValues>): string {
+export function renderLetterPrompt(values: Partial<LetterValues>, opts: { emAte?: boolean } = {}): string {
   return LETTER_TEMPLATE.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
     const value = (values as Record<string, string | undefined>)[key];
     const text = typeof value === "string" ? value.trim() : "";
+    if (key === "qtd_parcelas" && text && opts.emAte) return `em até ${text}`;
     return text || "(vazio)";
   });
 }

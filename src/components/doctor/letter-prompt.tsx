@@ -27,7 +27,7 @@ export function LetterPrompt({ id, panel }: { id: string; panel: { defaults: Let
     if (!husband.trim()) { toast.error("Informe o nome do marido."); return; }
     if (!option) { toast.error("Escolha o plano."); return; }
     if (!parcela) { toast.error("Escolha a quantidade de parcelas."); return; }
-    const text = renderLetterPrompt({ ...defaults, nome_destinatario: husband, duracao_meses: option.meses, qtd_parcelas: parcelas, valor_parcela: parcela });
+    const text = renderLetterPrompt({ ...defaults, nome_destinatario: husband, duracao_meses: option.meses, qtd_parcelas: parcelas, valor_parcela: parcela }, { emAte: parcelas === option.max_parcelas });
     setPrompt(text);
     try {
       await navigator.clipboard.writeText(text);
@@ -82,7 +82,7 @@ export function LetterPrompt({ id, panel }: { id: string; panel: { defaults: Let
 
           <p className="mt-2 text-xs text-neutral-600">
             {option && parcela
-              ? <>Plano de {option.meses} meses. Na carta: <strong>{parcelas}x de {parcela}</strong> sem juros no cartão, ou via PIX. O valor total não aparece.</>
+              ? <>Plano de {option.meses} meses. Na carta: <strong>{parcelas === option.max_parcelas ? "em até " : ""}{parcelas}x de {parcela}</strong> sem juros no cartão, ou via PIX. O valor total não aparece.</>
               : "Escolha o plano. A carta mostra só a parcela, nunca o valor total."}
           </p>
 
