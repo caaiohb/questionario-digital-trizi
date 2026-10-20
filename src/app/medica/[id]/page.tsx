@@ -13,6 +13,8 @@ import type { StoredAnswers } from "@/types/questionnaire";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { AiSummary } from "@/components/panel/ai-summary";
+import { LetterPrompt } from "@/components/doctor/letter-prompt";
+import { buildLetterDefaults } from "@/lib/letter-defaults";
 import { AttendedButton } from "@/components/doctor/doctor-actions";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +76,8 @@ export default async function DoctorSubmissionPage({ params }: { params: Promise
       </Card>
 
       <AiSummary id={id} archived={archived} />
+
+      <LetterPrompt id={id} defaults={buildLetterDefaults(submission)} />
 
       {archived && (
         <Card className="border-2 border-amber-200 bg-amber-50 p-5">
