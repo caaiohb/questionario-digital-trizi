@@ -1,16 +1,27 @@
-/** Prompt da carta para a pessoa próxima da paciente (marido, esposa, filha...). A médica revisa os campos e cola o texto no Claude. */
+/** Prompt da carta para o marido da paciente. A médica informa só o nome dele e o valor do plano; o resto vem do questionário e das Configurações. */
 
 export type LetterKey =
   | "nome_paciente" | "idade" | "sexo"
   | "nome_destinatario" | "vinculo"
-  | "tempo_sintomas" | "sintomas" | "frases_paciente" | "nota_impacto" | "areas_afetadas" | "tentativas_anteriores" | "objetivo_paciente"
+  | "questionario"
   | "duracao_meses" | "equipe" | "qtd_parcelas" | "valor_parcela" | "contato" | "uf_crm";
 
 export type LetterValues = Record<LetterKey, string>;
 
+/** Dados fixos do plano, cadastrados uma vez pelo administrador em Configurações. */
+export interface LetterPlan {
+  duracao_meses: string;
+  qtd_parcelas: string;
+  contato: string;
+  uf_crm: string;
+  equipe: string;
+}
+
 export const DEFAULT_LETTER_TEAM = "Dra. Janifer, com consultas e conversa mensal; Dra. Claudia, nutrição; Tadeu, avaliação física; Dra. Renata, terapia e sono";
 
-export const LETTER_TEMPLATE = `Você é redator de comunicação médica premium do Instituto Trizi. Escreva uma carta pessoal da Dra. Janifer Sewruk Trizi que a paciente vai entregar a uma pessoa próxima. O objetivo é ajudar essa pessoa a entender o que a paciente está vivendo, perceber o valor do Plano Trizi 360º e decidir junto com ela por iniciar o plano.
+export const DEFAULT_LETTER_PLAN: LetterPlan = { duracao_meses: "", qtd_parcelas: "", contato: "", uf_crm: "", equipe: DEFAULT_LETTER_TEAM };
+
+export const LETTER_TEMPLATE = `Você é redator de comunicação médica premium do Instituto Trizi. Escreva uma carta pessoal da Dra. Janifer Sewruk Trizi que a paciente vai entregar ao marido ou a uma pessoa próxima. O objetivo é ajudar essa pessoa a entender o que a paciente está vivendo, enxergar o que ela pode melhorar com o Plano Trizi 360º e decidir junto com ela por apoiar o plano.
 
 ══ DADOS DESTA CARTA ══
 Paciente
@@ -22,15 +33,6 @@ Destinatário
 - Nome: {{nome_destinatario}}
 - Vínculo com a paciente: {{vinculo}}
 
-O que a paciente relatou (use só isto)
-- Há quanto tempo sente: {{tempo_sintomas}}
-- Sintomas e queixas: {{sintomas}}
-- Frases dela, literais: {{frases_paciente}}
-- Impacto no dia a dia (0 a 10): {{nota_impacto}}
-- Áreas da vida afetadas: {{areas_afetadas}}
-- O que já tentou antes e como foi: {{tentativas_anteriores}}
-- O que quer conquistar: {{objetivo_paciente}}
-
 Plano
 - Duração: {{duracao_meses}} meses
 - Profissionais incluídos: {{equipe}}
@@ -39,22 +41,29 @@ Plano
 
 Se algum dado vier vazio, ou marcado como (vazio), não invente. Escreva a carta sem ele. Se faltar nome, valor ou contato, use [campo].
 
-══ COMO TRABALHAR OS RELATOS DA PACIENTE ══
-Antes de escrever, analise os relatos e escolha 2 ou 3 pontos que mais vão tocar o destinatário. Use estes critérios:
+══ QUESTIONÁRIO PREENCHIDO PELA PACIENTE ══
+Use o questionário inteiro para analisar os gatilhos dela. As informações clínicas e íntimas servem para você entender o contexto e não devem ser citadas na carta.
 
-1. O que afeta diretamente a vida a dois ou a família. Por exemplo, irritabilidade, falta de desejo, cansaço que impede programas juntos, isolamento social. Mostre como isso aparece no dia a dia dos dois, sem culpar ninguém.
+{{questionario}}
 
-2. As frases dela que revelam esforço e sofrimento silencioso, como "me cobro muito" ou "minha mente não para". Use-as para mostrar que ela não está acomodada. Ela está esgotada.
+══ ANÁLISE ANTES DE ESCREVER (não mostre esta análise) ══
+Leia o questionário completo e escolha 2 ou 3 gatilhos que mais vão tocar o destinatário e ajudá-lo a apoiar o plano. Use estes critérios:
 
-3. A frustração com tentativas anteriores. Use-a para explicar, com naturalidade, por que um olhar integrado é diferente: sintomas vistos isoladamente não mostram o todo.
+1. O que afeta diretamente a vida a dois ou a família. Por exemplo, irritabilidade, cansaço que impede programas juntos, sono ruim, isolamento social, falta de energia. Mostre como isso aparece no dia a dia dos dois, sem culpar ninguém.
 
-4. O objetivo dela, nas palavras dela. Ele será o fio condutor da parte final da carta.
+2. As frases dela, escritas com as próprias palavras, que revelam esforço e sofrimento silencioso. Use-as para mostrar que ela não está acomodada. Ela está esgotada.
+
+3. A frustração com tentativas anteriores e o que a impediu de se cuidar até hoje. Use-a para explicar, com naturalidade, por que um olhar integrado é diferente: sintomas vistos isoladamente não mostram o todo.
+
+4. O objetivo dela para daqui a 6 meses, nas palavras dela. Ele será o fio condutor da parte final da carta.
+
+5. O jeito dela de decidir sobre a própria saúde. Se ela costuma decidir junto com alguém, convide o destinatário a participar. Se decide sozinha, respeite a autonomia dela e peça o apoio dele.
 
 Depois:
-- Traduza cada sintoma escolhido em uma cena concreta e reconhecível da rotina. Exemplos: acordar já cansada, não ter vontade de sair, perder a paciência por pouco.
-- Conecte os pontos escolhidos a como cada área do plano vai trabalhar sobre eles. Fale do sono, da alimentação, dos hormônios e da saúde emocional como partes que conversam entre si.
+- Traduza cada gatilho escolhido em uma cena concreta e reconhecível da rotina. Exemplos: acordar já cansada, não ter vontade de sair, perder a paciência por pouco.
+- Para cada gatilho, mostre o que buscamos melhorar para ela e como isso aparece no dia a dia dos dois. Conecte aos pilares do plano: sono, alimentação, hormônios e saúde emocional trabalhando juntos.
 - Desfaça a ideia de "frescura" ou "falta de força de vontade" com uma afirmação clara e respeitosa: o que ela sente é real e merece ser investigado.
-- Termine mostrando o que muda para os dois quando ela recupera energia, sono, disposição e equilíbrio. Use sempre "buscamos" ou "vamos trabalhar para".
+- Apresente o plano como um cuidado que o casal escolhe junto, em que o apoio dele faz diferença. Mostre o que ganham os dois quando ela recupera energia, sono, disposição e equilíbrio. Use sempre "buscamos" ou "vamos trabalhar para".
 - Convide o destinatário a apoiar a decisão e a fazer parte do cuidado no dia a dia.
 
 ══ ESTRUTURA ══
@@ -66,7 +75,7 @@ Depois:
    - Etapa 2: ajustar e construir rotina.
    - Etapa 3: consolidar e dar autonomia.
    Mencione também o cronograma mês a mês, sem inventar o que acontece em cada mês, e que as condutas são ajustadas conforme a evolução da paciente.
-5. O que buscamos para ela e, por consequência, para os dois.
+5. O que buscamos melhorar para ela e, por consequência, para os dois.
 6. Convite para apoiar e decidir junto.
 7. Investimento e próximo passo:
    - Informe apenas a parcela: "{{qtd_parcelas}} parcelas de {{valor_parcela}} sem juros no cartão, ou via PIX".
@@ -89,7 +98,8 @@ Depois:
 - Não fale em diagnóstico. Fale em investigação e cuidado.
 - Não cite morte, doenças graves nem riscos.
 - Não cite exames, medicamentos nem hormônios específicos.
-- Não exponha nenhum dado clínico além dos fornecidos.
+- Não cite condições de saúde, histórico familiar, vida íntima nem qualquer dado clínico do questionário. Cite apenas o que ela relatou como incômodo no dia a dia, como cansaço, sono, humor e disposição.
+- Use somente o que consta no questionário. Não invente dados.
 - Não use depoimentos, comparações com outros profissionais nem "antes e depois".
 - Não sugira que o Instituto vá contatar o destinatário diretamente.
 

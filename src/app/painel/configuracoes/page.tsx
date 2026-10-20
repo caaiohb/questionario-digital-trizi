@@ -3,6 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { defaultPublicSettings, defaultInviteMessageTemplate } from "@/config/defaultSettings";
 import { SettingsForm, type AdminSettings } from "@/components/admin/settings-form";
 import { AiPromptEditor } from "@/components/admin/ai-prompt-editor";
+import { LetterPlanEditor } from "@/components/admin/letter-plan-editor";
+import { LETTER_PLAN_KEY, normalizeLetterPlan } from "@/lib/letter-plan";
 import { AI_INSTRUCTIONS_KEY, DEFAULT_AI_INSTRUCTIONS } from "@/lib/ai-prompt";
 
 export default async function SettingsPage() {
@@ -12,5 +14,5 @@ export default async function SettingsPage() {
   };
   const rawPrompt = map[AI_INSTRUCTIONS_KEY];
   const savedPrompt = typeof rawPrompt === "string" && rawPrompt.trim() ? rawPrompt : null;
-  return <div><p className="text-sm font-bold uppercase tracking-widest text-[#8c744f]">Administração</p><h1 className="mt-2 text-3xl font-semibold">Configurações</h1><p className="mt-2 mb-7 text-slate-600">Personalize a identidade, os textos públicos e os contatos de segurança do Instituto Trizi.</p><SettingsForm initial={initial} /><AiPromptEditor initial={savedPrompt ?? DEFAULT_AI_INSTRUCTIONS} defaultTemplate={DEFAULT_AI_INSTRUCTIONS} isDefault={!savedPrompt} /></div>;
+  return <div><p className="text-sm font-bold uppercase tracking-widest text-[#8c744f]">Administração</p><h1 className="mt-2 text-3xl font-semibold">Configurações</h1><p className="mt-2 mb-7 text-slate-600">Personalize a identidade, os textos públicos e os contatos de segurança do Instituto Trizi.</p><SettingsForm initial={initial} /><AiPromptEditor initial={savedPrompt ?? DEFAULT_AI_INSTRUCTIONS} defaultTemplate={DEFAULT_AI_INSTRUCTIONS} isDefault={!savedPrompt} /><LetterPlanEditor initial={normalizeLetterPlan(map[LETTER_PLAN_KEY])} /></div>;
 }

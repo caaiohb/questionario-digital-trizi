@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { AiSummary } from "@/components/panel/ai-summary";
 import { LetterPrompt } from "@/components/doctor/letter-prompt";
 import { buildLetterDefaults } from "@/lib/letter-defaults";
+import { readLetterPlan } from "@/lib/letter-plan";
 import { AttendedButton } from "@/components/doctor/doctor-actions";
 
 export const dynamic = "force-dynamic";
@@ -30,14 +31,14 @@ export default async function DoctorSubmissionPage({ params }: { params: Promise
   const admin = createAdminClient();
   const { data } = await admin
     .from("questionnaire_submissions")
-    .select("id,protocol,patient_name,patient_age,current_weight,desired_weight,height,answers,answers_archived_at,submitted_at,priority_alert,doctor_attended_at")
+    .select("id,protocol,patient_name,patient_age,current_weight,desired_weight,height,answers,answers_archived_at,submitted_at,priority_alert,doctor_attended_at,ai_prompt_text")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
   if (!data) notFound();
   const submission = data as unknown as {
     id: string; protocol: string; patient_name: string; patient_age: number; current_weight: number; desired_weight: number; height: number;
-    answers: StoredAnswers; answers_archived_at: string | null; submitted_at: string; priority_alert: boolean; doctor_attended_at: string | null;
+    answers: StoredAnswers; ai_prompt_text: string | null; answers_archived_at: string | null; submitted_at: string; priority_alert: boolean; doctor_attended_at: string | null;
   };
   const answers = (submission.answers ?? {}) as StoredAnswers;
   const archived = Boolean(submission.answers_archived_at) && Object.keys(answers).length === 0;
@@ -77,7 +78,7 @@ export default async function DoctorSubmissionPage({ params }: { params: Promise
 
       <AiSummary id={id} archived={archived} />
 
-      <LetterPrompt id={id} defaults={buildLetterDefaults(submission)} />
+      <LetterPrompt id={id} defaults={buildLetterDefaults(submission, await readLetterPlan())} />
 
       {archived && (
         <Card className="border-2 border-amber-200 bg-amber-50 p-5">
