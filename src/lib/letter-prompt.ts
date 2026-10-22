@@ -113,12 +113,14 @@ Médica · CRM {{uf_crm}} 112.184
 Instituto Trizi
 
 ══ FORMATO DE SAÍDA ══
-Responda somente com a carta, sem comentários antes ou depois, em HTML simples:
-- <h1> com um título curto e delicado, diferente a cada carta, sem o nome da paciente.
-- Cada parágrafo em <p>.
-- Citações da paciente entre aspas curvas “ ” dentro de <q>.
-- A frase sobre "o que ela sente é real" em <p class="destaque">.
-- A assinatura em <div class="assinatura">.`;
+Entregue a carta como um arquivo PDF para download (não como HTML nem como texto solto no chat). Se não conseguir gerar o arquivo, avise em uma linha.
+- Página A4, uma página se possível, no máximo duas, com margens generosas, fonte serifada elegante e legível e visual sóbrio e acolhedor.
+- Título curto e delicado no topo, diferente a cada carta, sem o nome da paciente.
+- Parágrafos bem espaçados. Citações da paciente entre aspas curvas “ ”.
+- A frase sobre "o que ela sente é real" em destaque (itálico ou com uma linha lateral).
+- A assinatura no final da última página.
+- Nome do arquivo: Carta - Instituto Trizi.pdf
+No chat, escreva apenas uma linha avisando que o PDF está pronto.`;
 
 /** Lê um valor em reais digitado do jeito brasileiro ("12.000,00", "R$ 12000", "990"). Devolve null se não for um número válido. */
 export function parseMoney(input: string): number | null {
